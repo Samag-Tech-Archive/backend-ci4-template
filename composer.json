@@ -9,6 +9,11 @@
             "email": "alessandro.marotta@samag.tech"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "SamagTech\\Crud" : "src/"
+        }
+    },
     "minimum-stability": "stable",
     "require": {
         "php": ">=7.4",
