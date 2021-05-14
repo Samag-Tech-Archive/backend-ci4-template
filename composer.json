@@ -1,7 +1,6 @@
 {
     "name": "samagtech/crud-ci4",
     "description": "Serie di classi per la creazione di un CRUD in CI4",
-    "type": "project",
     "license": "MIT",
     "authors": [
         {
