@@ -71,8 +71,19 @@ abstract class MyMigrations extends Migration {
         'created_date'      => 'created_date DATETIME DEFAULT now()',
         'sys_updated_date'  => 'sys_updated_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
         'updated_date'      => 'updated_date DATETIME DEFAULT NULL',
-        'created_by'        => 'created_by MEDIUMINT UNSIGNED NOT NULL',
-        'updated_by'        => 'updated_by MEDIUMINT UNSIGNED DEFAULT NULL',
+        'created_by'        => [
+            'created_by'    =>  [
+                'type'          => 'MEDIUMINT',
+                'unsigned'      => true
+            ]
+        ],
+        'updated_by'        => [
+            'updated_by'    =>  [
+                'type'          => 'MEDIUMINT',
+                'unsigned'      => true,
+                'default'       => null
+            ]
+        ],
     ];
 
     //--------------------------------------------------------------------------------
@@ -80,13 +91,13 @@ abstract class MyMigrations extends Migration {
     /**
      * Funzione per aggiungere le colonne accessorie
      * 
-     * @param array $fields     Array contentente i campi della tabella
+     * @param array &$fields     Array contentente i campi della tabella
      * 
      * @access protected
      * 
      * @return array  Ritorna l'array con i campi accessori
      */
-    protected function addFieldsAccessories(array $fields) : array {
+    protected function addFieldsAccessories(array &$fields) : array {
         
         // Per ogni flag impostato a true aggiungo la colonna accessoria
         if ( $this->createdDate ) {
@@ -102,11 +113,11 @@ abstract class MyMigrations extends Migration {
         }
 
         if ( $this->createdBy ) {
-            array_push($fields, $this->columnDefinition['created_by']);
+            $fields = array_merge($fields, $this->columnDefinition['created_by']);
         }
 
         if ( $this->updatedBy ) {
-            array_push($fields, $this->columnDefinition['updated_by']);
+            $fields = array_merge($fields, $this->columnDefinition['updated_by']);
         }
 
         return $fields;
