@@ -1,12 +1,12 @@
 <?php namespace SamagTech\Crud\Core;
 
-use App\Exceptions\CreateException;
-use App\Exceptions\DeleteException;
-use App\Exceptions\DownloadException;
-use App\Exceptions\UploadException;
-use App\Exceptions\ResourceNotFoundException;
-use App\Exceptions\ValidationException;
+use SamagTech\Crud\Exceptions\CreateException;
+use SamagTech\Crud\Exceptions\DeleteException;
+use SamagTech\Crud\Exceptions\ResourceNotFoundException;
+use SamagTech\Crud\Exceptions\ValidationException;
 use CodeIgniter\HTTP\Response;
+use SamagTech\Crud\Exceptions\DownloadException;
+use SamagTech\Crud\Exceptions\UploadException;
 
 /**
  * Classe astratta per la definizione di un nuovo CRUD con la gestione dei file

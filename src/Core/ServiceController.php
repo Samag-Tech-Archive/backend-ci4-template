@@ -3,12 +3,13 @@
 use CodeIgniter\Controller as Controller;
 use \CodeIgniter\HTTP\Response as Response;
 use CodeIgniter\API\ResponseTrait;
+use SamagTech\Crud\Exceptions\CreateException;
+use SamagTech\Crud\Exceptions\DeleteException;
+use SamagTech\Crud\Exceptions\ResourceNotFoundException;
+use SamagTech\Crud\Exceptions\UpdateException;
+use SamagTech\Crud\Exceptions\ValidationException;
 use SamagTech\Crud\Singleton\CurrentUser;
-use App\Exceptions\CreateException;
-use App\Exceptions\DeleteException;
-use App\Exceptions\UpdateException;
-use App\Exceptions\ResourceNotFoundException;
-use App\Exceptions\ValidationException;
+
 
 /**
  * Classe astratta per la definizione di un nuovo CRUD.
@@ -80,7 +81,7 @@ abstract class ServiceController extends Controller implements ServiceController
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Inizializzo il servizio da utilizzare
-        $this->service = self::getFactory('');
+        $this->service = self::getFactory($this->currentUser->app_token ?? null);
     }
 
     //--------------------------------------------------------------------------------------------
