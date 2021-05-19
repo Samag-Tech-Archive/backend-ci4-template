@@ -9,7 +9,7 @@ use \CodeIgniter\HTTP\Response;
  * @author Alessandro Marotta
  * 
  */
-interface ServiceControllerInterface {
+interface ServiceControllerInterface extends Factory {
 
     //--------------------------------------------------------------------------------------------
 
