@@ -18,7 +18,7 @@ use SamagTech\Crud\Singleton\CurrentUser;
  * @extends Controller
  * @abstract 
  */
-abstract class ServiceController extends Controller implements ServiceControllerInterface, Factory {
+abstract class ServiceController extends Controller implements ServiceControllerInterface {
 
     use ResponseTrait;
 
@@ -76,6 +76,15 @@ abstract class ServiceController extends Controller implements ServiceController
 		//--------------------------------------------------------------------
 		// E.g.:
         // $this->session = \Config\Services::session();
+    }
+
+    //--------------------------------------------------------------------------------------------
+
+    /**
+     * Costruttore.
+     * 
+     */
+    public function __construct() {
 
         // Recupero i dati dell'utente autenticato
         $this->currentUser = CurrentUser::getIstance()->getProperty();
@@ -93,7 +102,6 @@ abstract class ServiceController extends Controller implements ServiceController
     public static function getFactory($token): CRUDService {
 
         // Recupero il nome della classe chiamante e di default
-        $class = get_called_class();
         $classDefault = get_called_class().'Default';
 
         switch($token) {
