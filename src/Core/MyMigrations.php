@@ -71,6 +71,7 @@ abstract class MyMigrations extends Migration {
         'created_date'      => 'created_date DATETIME DEFAULT now()',
         'sys_updated_date'  => 'sys_updated_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
         'updated_date'      => 'updated_date DATETIME DEFAULT NULL',
+        'deleted_date'      => 'deleted_date DATETIME DEFAULT NULL',
         'created_by'        => [
             'created_by'    =>  [
                 'type'          => 'MEDIUMINT',
@@ -110,6 +111,10 @@ abstract class MyMigrations extends Migration {
 
         if ( $this->sysUpdatedDate ) {
             array_push($fields, $this->columnDefinition['sys_updated_date']);            
+        }
+
+        if ( $this->deletedDate ) {
+            array_push($fields, $this->columnDefinition['deleted_date']);
         }
 
         if ( $this->createdBy ) {
