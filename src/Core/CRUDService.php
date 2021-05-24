@@ -215,8 +215,8 @@ abstract class CRUDService implements Service {
         helper($this->helpers);
 
         // Carico la configurazione
-        $this->configModel = (new \Config\Models())->models;
-        $this->appConfig = new \Config\Application();
+        $this->configModel = config('Models')->models;
+        $this->appConfig = config('Application');
 
         // Controllo se validation sia una array
         if ( ! is_array($this->validationsRules) ) {
@@ -338,7 +338,7 @@ abstract class CRUDService implements Service {
         ];
 
         // Aggiunge dati alla query e modifica le opzioni
-        $options = $this->preRetrieveCallback($options);
+        $options = $this->preRetrieveCallback($options, $params);
 
         // Recupera i dati in base ai parametri
         $data['rows'] = $this->model->getWithParams($options, $params, $this->joinFieldsFilters, $this->joinFieldsSort);
@@ -637,10 +637,11 @@ abstract class CRUDService implements Service {
      * Callback per effettuare aggiunte o modifiche alle query
      * 
      * @param array $options    Array con le opzioni per le query
+     * @param array &$params    Array contentente i parametri per la lista
      * 
      * @return array    Opzioni modificate
      */
-    protected function preRetrieveCallback(array $options ) {
+    protected function preRetrieveCallback(array $options, array &$params ) {
         return $options;
     } 
 
