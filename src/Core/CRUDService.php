@@ -409,7 +409,7 @@ abstract class CRUDService implements Service {
         $this->updateCallback($id,$extraUpdate);
         
         // Callback post-modifica
-        $this->postUpdateCallback($id,$data);
+        $this->postUpdateCallback($id, $data, $extraUpdate);
 
         $this->db->transComplete();
 
