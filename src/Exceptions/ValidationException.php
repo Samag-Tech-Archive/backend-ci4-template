@@ -68,4 +68,17 @@ class ValidationException extends Exception {
     public function getValidationError() : string {
         return current($this->errors);
     }
+    
+    //---------------------------------------------------------------------------
+    
+    /**
+     * Funzione che restituisce l'array degli errori di validazione 
+     *
+     * @return array
+     */
+    public function getValidationErrors() : array {
+        return $this->errors;
+    }
+    
+    //---------------------------------------------------------------------------
 }
