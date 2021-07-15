@@ -202,6 +202,16 @@ abstract class CRUDService implements Service {
      * @access protected 
      */
     protected ?Log $logger;
+    
+    /**
+     * Flag per l'attivazione del logger
+     * nel singolo CRUD
+     * 
+     * @var bool
+     * @access protected 
+     */
+    protected bool $activeCrudLogger = true;
+    
 
     //---------------------------------------------------------------------------------
 
@@ -238,7 +248,7 @@ abstract class CRUDService implements Service {
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Inizializzo la libreria di log
-        if ( $this->appConfig->activeLogger ) {
+        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
             $this->logger = new Log($this->model->getTable(), $this->currentUser->id);
         }
     }
@@ -277,7 +287,7 @@ abstract class CRUDService implements Service {
         $id = $this->model->insert($data);
 
         // Check per il logger
-        if ( $this->appConfig->activeLogger ) {
+        if ( $this->appConfig->activeLogger && $this->activeCrudLogger) {
             $this->logger->createLog('create', $id, $data);
         }
 
@@ -401,7 +411,7 @@ abstract class CRUDService implements Service {
         $isUpdate = $this->model->update($id,$data);
 
         // Check per il logger
-        if ( $this->appConfig->activeLogger ) {
+        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
             $this->logger->createLog('update', $id, $oldData, $data);
         }
 
@@ -447,7 +457,7 @@ abstract class CRUDService implements Service {
         $isDelete = $this->model->delete($id) != false;
 
         // Check per il logger
-        if ( $this->appConfig->activeLogger ) {
+        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
             $this->logger->createLog('delete', $id, $oldData);
         }
 
