@@ -5,6 +5,7 @@ use \CodeIgniter\HTTP\Response as Response;
 use CodeIgniter\API\ResponseTrait;
 use SamagTech\Crud\Exceptions\CreateException;
 use SamagTech\Crud\Exceptions\DeleteException;
+use SamagTech\Crud\Exceptions\GenericException;
 use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Exceptions\UpdateException;
 use SamagTech\Crud\Exceptions\ValidationException;
@@ -132,6 +133,9 @@ abstract class ServiceController extends Controller implements ServiceController
         catch(CreateException $e) {
             return $this->fail($e->getMessage());
         }
+        catch(GenericException $e) {
+            return $this->fail($e->getMessage());
+        }
 
         return $this->respondCreated(['item_id'  =>  $resourceId]);
         
@@ -153,6 +157,9 @@ abstract class ServiceController extends Controller implements ServiceController
         }
         catch(ResourceNotFoundException $e ) {
             return $this->failNotFound($e->getMessage());
+        }
+        catch(GenericException $e) {
+            return $this->fail($e->getMessage());
         }
         
         return $this->respond($data, 200, $this->messages['retrieve']);
@@ -182,6 +189,9 @@ abstract class ServiceController extends Controller implements ServiceController
         catch(UpdateException $e) {
             return $this->fail($e->getMessage());
         }
+        catch(GenericException $e) {
+            return $this->fail($e->getMessage());
+        }
 
         return $this->respondUpdated(['item_id' => $id], $this->messages['update']);
     }
@@ -205,6 +215,9 @@ abstract class ServiceController extends Controller implements ServiceController
             return $this->failNotFound($e->getMessage());
         }
         catch(DeleteException $e) {
+            return $this->fail($e->getMessage());
+        }
+        catch(GenericException $e) {
             return $this->fail($e->getMessage());
         }
 
