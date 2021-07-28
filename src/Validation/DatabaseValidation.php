@@ -4,14 +4,30 @@ use InvalidArgumentException;
 
 class DatabaseValidation {
 
+	/**
+	 * Connessione al database
+	 * 
+	 */
+	private $db;
+
+	//-------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Costruttore.
+	 * 
+	 */
+	public function __construct() {
+		$this->db = \Config\Database::connect();
+	}
+
 	//-------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Controllo se esiste l'identificativo 
 	 * 
 	 */
-	public function db_exist($str, string $model) {
-		return ! is_null(model(config('Models')->models[$model])->find((int)$str));
+	public function db_exist($str, string $table) {
+		return ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
 	}
 
 	//-------------------------------------------------------------------------------------------------------------
@@ -19,16 +35,16 @@ class DatabaseValidation {
 	/**
 	 * Controlla la consistenza delle chiavi univoche
 	 * 
-	 * Ex: db_check_unique_key[MODELLO,CAMPO1,CAMPO2,....,CAMPON]
+	 * Ex: db_check_unique_key[TABELLA,CAMPO1,CAMPO2,....,CAMPON]
 	 */
 	public function db_check_unique_key($str, string $fields, $data) {
 		
 		$fields = explode(',', $fields);
 
-		// Recupero il modello
-		$model = array_shift($fields);
+		// Recupero la tabella
+		$table = array_shift($fields);
 
-		if ( is_null($model) || count($fields) < 2 ) {
+		if ( is_null($table) || count($fields) < 2 ) {
 			throw new InvalidArgumentException('Il modello e/o i campi non sono ben impostati.');
 		}
 
@@ -44,7 +60,8 @@ class DatabaseValidation {
 			$where[$field] = $data[$field];
 		}
 
-		return empty(model(config('Models')->models[$model])->where($where)->findAll());
+		return empty($this->db->table($table)->where($where)->get()->getResultArray());
 
 	}
+
 }
