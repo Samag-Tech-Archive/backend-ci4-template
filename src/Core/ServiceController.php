@@ -134,7 +134,7 @@ abstract class ServiceController extends Controller implements ServiceController
      */
     public function getFactory($token): CRUDService {
 
-        if ( ! is_null($this->services) &&  ! isset($this->services[$token]) ) {
+        if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
 
             $service = "App\Modules\{$this->services[$token]}\Services\{$this->services[$token]}";
 
