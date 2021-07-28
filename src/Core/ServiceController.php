@@ -162,10 +162,7 @@ abstract class ServiceController extends Controller implements ServiceController
         catch(ValidationException $e) {
             return $this->failValidationErrors($e->getValidationErrors());
         }
-        catch(CreateException $e) {
-            return $this->fail($e->getMessage());
-        }
-        catch(GenericException $e) {
+        catch(CreateException | GenericException $e) {
             return $this->fail($e->getMessage());
         }
 
@@ -218,10 +215,7 @@ abstract class ServiceController extends Controller implements ServiceController
         catch ( ResourceNotFoundException $e ) {
             return $this->failNotFound($e->getMessage());
         }
-        catch(UpdateException $e) {
-            return $this->fail($e->getMessage());
-        }
-        catch(GenericException $e) {
+        catch(UpdateException | GenericException $e) {
             return $this->fail($e->getMessage());
         }
 
@@ -246,10 +240,7 @@ abstract class ServiceController extends Controller implements ServiceController
         catch ( ResourceNotFoundException $e ) {
             return $this->failNotFound($e->getMessage());
         }
-        catch(DeleteException $e) {
-            return $this->fail($e->getMessage());
-        }
-        catch(GenericException $e) {
+        catch(DeleteException | GenericException $e) {
             return $this->fail($e->getMessage());
         }
 
