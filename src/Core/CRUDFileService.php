@@ -64,7 +64,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             die('Il modello per i file non è settato');
         }
         else {
-            $this->fileModel = model($this->configModel[$this->fileModelName]);
+            $this->fileModel = model($this->fileModelName);
         }
     }
 
@@ -116,11 +116,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new CreateException();
         } 
 
-        // Check per il logger
-        if ( $this->appConfig->activeLogger ) {
-            $this->logger->createLog('upload', $resourceID, $toInsert);
-        }
-
+        // Crea il log
+        $this->logger->create('upload', $resourceID, $toInsert);
+        
         return true;
 
     }
@@ -173,9 +171,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         $this->db->transStart();
 
         // Cancello la riga
-        $isDelete = $this->fileModel->delete($fileID) != false;
+        $deleted = $this->fileModel->delete($fileID) != false;
         
-        if ( $isDelete ) { 
+        if ( $deleted ) { 
         
             // Cancello il file
             if ( ! unlink($this->appConfig->uploadsPath.$document['folder'].'/'.$file['hash_name']) ) {
@@ -183,10 +181,8 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             } 
         }
 
-        // Check per il logger
-        if ( $this->appConfig->activeLogger ) {
-            $this->logger->createLog('delete_file',$fileID, $file);
-        }
+        // Crea il logger
+        $this->logger->create('delete_file',$fileID, $file);
 
         $this->db->transComplete();
 
@@ -195,7 +191,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new DeleteException();
         }
 
-        return $isDelete;
+        return $deleted;
     }
 
     //---------------------------------------------------------------------------------
