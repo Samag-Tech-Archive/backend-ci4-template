@@ -71,7 +71,7 @@ abstract class ServiceController extends Controller implements ServiceController
      *  'token2' => 'Servizio2',
      * ]
      * 
-     * @var string
+     * @var string[]
      * @access protected
      */
     protected ?array $services = null;
@@ -136,7 +136,7 @@ abstract class ServiceController extends Controller implements ServiceController
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
 
-            $service = "App\Modules\{$this->services[$token]}\Services\{$this->services[$token]}";
+            $service = "App\Modules\{$this->getClassName()}\Services\{$this->services[$token]}";
 
             return new $service;
         }
