@@ -21,6 +21,7 @@ interface Service {
      * 
      * @throws ValidationException   Solleva questa eccezione se è fallita la validazione
      * @throws CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
+     * @throws GenericException      Solleva quest'eccezione se c'è stato un errore generico
      * 
      * @return int  Identificativo della risorsa appena creata
      */
@@ -36,6 +37,7 @@ interface Service {
      * @param  IncomingRequest $request     Dati della richiesta  
      * 
      * @throws ResourceNotFountException Solleva questa eccezione se la risorsa non esiste.
+     * @throws GenericException          Solleva quest'eccezione se c'è stato un errore generico
      * 
      * @return array Lista delle risorse cercate
      */
@@ -52,6 +54,7 @@ interface Service {
      * @throws UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
      * @throws ValidationException           Solleva questa eccezione se è fallita la validazione
      * @throws ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
+     * @throws GenericException              Solleva quest'eccezione se c'è stato un errore generico
      * 
      * @return bool  Ritorna TRUE se la risorsa è stata modifica, FALSE altrimenti
      */
@@ -67,6 +70,7 @@ interface Service {
      * 
      * @throws DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
      * @throws ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
+     * @throws GenericException              Solleva quest'eccezione se c'è stato un errore generico
      * 
      * @return bool  Ritorna TRUE se la risorsa è stata cancellata, FALSE altrimenti
      */
