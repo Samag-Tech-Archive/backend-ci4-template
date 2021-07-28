@@ -367,7 +367,7 @@ abstract class CRUDService implements Service {
     public function update(IncomingRequest $request, int $id) : bool {
 
         // Controllo se la risorsa esiste
-        if  ( ! $this->model->exist($id) ) {
+        if  ( is_null($oldData = $this->model->find($id)) ) {
             throw new ResourceNotFoundException();
         }
 
@@ -376,9 +376,6 @@ abstract class CRUDService implements Service {
 
         // Recupero i dati dalla richiesta
         $data = $request->getJSON(TRUE);
-
-        // Recupero i dati prima dell'update
-        $oldData = $this->model->find($id);
         
         // Callback pre-modifica
         $data = $this->preUpdateCallback($id, $data);
@@ -429,15 +426,12 @@ abstract class CRUDService implements Service {
     public function delete(IncomingRequest $request, int $id) : bool {
         
         // Controllo se la risorsa esiste
-        if  ( ! $this->model->exist($id) ) {
+        if  ( is_null($oldData = $this->model->find($id)) ) {
             throw new ResourceNotFoundException();
         }
 
         // Inizializzo la transazione
         $this->db->transStart();
-
-        // Recupero i dati prima della delete
-        $oldData = $this->model->find($id);
 
         // Funzione pre-cancellazione
         $this->preDeleteCallback($id, $oldData);
