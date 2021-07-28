@@ -10,7 +10,7 @@ use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Exceptions\UpdateException;
 use SamagTech\Crud\Exceptions\ValidationException;
 use SamagTech\Crud\Singleton\CurrentUser;
-
+use SamagTech\Crud\Traits\CrudTrait;
 
 /**
  * Classe astratta per la definizione di un nuovo CRUD.
@@ -21,7 +21,7 @@ use SamagTech\Crud\Singleton\CurrentUser;
  */
 abstract class ServiceController extends Controller implements ServiceControllerInterface {
 
-    use ResponseTrait;
+    use ResponseTrait, CrudTrait;
 
     /**
      * Variabile per la definizione del sottomodulo che deve essere utilizzato
@@ -56,6 +56,27 @@ abstract class ServiceController extends Controller implements ServiceController
 
 
     /**
+     * Service di default
+     * 
+     * @var string
+     * @access protected
+     */
+    protected string $defaultService;
+
+    /**
+     * Lista di servizi esterni al default service
+     * 
+     * Es. [
+     *  'token1' => 'Servizio1',
+     *  'token2' => 'Servizio2',
+     * ]
+     * 
+     * @var string
+     * @access protected
+     */
+    protected ?array $services = null;
+
+    /**
 	* An array of helpers to be loaded automatically upon
 	* class instantiation. These helpers will be available
 	* to all other controllers that extend BaseController.
@@ -67,7 +88,11 @@ abstract class ServiceController extends Controller implements ServiceController
 	/**
 	 * Constructor.
 	 */
-	public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger) {
+	public function initController(
+        \CodeIgniter\HTTP\RequestInterface $request, 
+        \CodeIgniter\HTTP\ResponseInterface $response, 
+        \Psr\Log\LoggerInterface $logger
+    ) {
     
         // Do Not Edit This Line
 		parent::initController($request, $response, $logger);
@@ -91,25 +116,32 @@ abstract class ServiceController extends Controller implements ServiceController
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Inizializzo il servizio da utilizzare
-        $this->service = self::getFactory($this->currentUser->app_token ?? null);
+        $this->service = $this->getFactory($this->currentUser->app_token ?? null);
+
+
+        // Servizio di default
+        $className = $this->getClassName();
+        $this->defaultService = "App\Modules\{$className}\Services\{$className}";
     }
 
     //--------------------------------------------------------------------------------------------
 
     /**
+     * {@inheritDoc}
+     * 
      * @implements Factory
      * 
      */
-    public static function getFactory($token): CRUDService {
+    public function getFactory($token): CRUDService {
 
-        // Recupero il nome della classe chiamante e di default
-        $classDefault = get_called_class().'Default';
+        if ( ! is_null($this->services) &&  ! isset($this->services[$token]) ) {
 
-        switch($token) {
-            default :
-                return new $classDefault;
+            $service = "App\Modules\{$this->services[$token]}\Services\{$this->services[$token]}";
+
+            return new $service;
         }
         
+        return new $this->defaultService;
     }
 
     //--------------------------------------------------------------------------------------------
@@ -128,7 +160,7 @@ abstract class ServiceController extends Controller implements ServiceController
             $resourceId = $this->service->create($this->request);
         }
         catch(ValidationException $e) {
-            return $this->failValidationError($e->getValidationError());
+            return $this->failValidationErrors($e->getValidationErrors());
         }
         catch(CreateException $e) {
             return $this->fail($e->getMessage());
@@ -181,7 +213,7 @@ abstract class ServiceController extends Controller implements ServiceController
             $this->service->update($this->request,$id);
         }
         catch(ValidationException $e) {
-            return $this->failValidationError($e->getValidationError());
+            return $this->failValidationErrors($e->getValidationErrors());
         }
         catch ( ResourceNotFoundException $e ) {
             return $this->failNotFound($e->getMessage());
