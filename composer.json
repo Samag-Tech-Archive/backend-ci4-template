@@ -10,7 +10,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "SamagTech\\Crud\\" : "src/"
+            "SamagTech\\Crud\\" : "src/",
+            "SamagTech\\Log\\" : "src/Log/"
         }
     },
     "minimum-stability": "stable",

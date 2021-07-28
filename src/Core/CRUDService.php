@@ -8,7 +8,8 @@ use SamagTech\Crud\Exceptions\DeleteException;
 use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Singleton\CurrentUser;
 use CodeIgniter\I18n\Time;
-use Log\Libraries\Log;
+use SamagTech\Crud\Config\Application;
+use SamagTech\Log\Libraries\Log;
 
 /**
  * Classe astratta che implementa i servizi CRUD di default
@@ -173,19 +174,12 @@ abstract class CRUDService implements Service {
     protected $db; 
 
     /**
-     * Configurazione per i modelli 
-     * 
-     * @var array
-     */
-    protected array $configModel;
-
-    /**
      * Configurazione Applicazione
      * 
-     * @var \Config\Application
+     * @var Application
      * @access protected
      */
-    protected \Config\Application $appConfig;
+    protected Application $appConfig;
 
     /**
      * Dati utente loggato
@@ -201,7 +195,7 @@ abstract class CRUDService implements Service {
      * @var Log
      * @access protected 
      */
-    protected ?Log $logger;
+    protected Log $logger;
     
     /**
      * Flag per l'attivazione del logger
@@ -224,8 +218,6 @@ abstract class CRUDService implements Service {
         // Carico tutti gli helpers necessari
         helper($this->helpers);
 
-        // Carico la configurazione
-        $this->configModel = config('Models')->models;
         $this->appConfig = config('Application');
 
         // Controllo se validation sia una array
@@ -238,7 +230,7 @@ abstract class CRUDService implements Service {
             die('Il modello non è settato');
         } 
         else {
-            $this->model = model($this->configModel[$this->modelName]);
+            $this->model = model($this->modelName);
         }
 
         // Istanzio la classe del database per usare le transazioni
@@ -248,9 +240,8 @@ abstract class CRUDService implements Service {
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Inizializzo la libreria di log
-        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
-            $this->logger = new Log($this->model->getTable(), $this->currentUser->id);
-        }
+        $this->logger = new Log($this->model->getTable(), $this, $this->currentUser ?? null);
+        
     }
 
     //---------------------------------------------------------------------------------
@@ -286,10 +277,7 @@ abstract class CRUDService implements Service {
         // Inserisco i dati
         $id = $this->model->insert($data);
 
-        // Check per il logger
-        if ( $this->appConfig->activeLogger && $this->activeCrudLogger) {
-            $this->logger->createLog('create', $id, $data);
-        }
+        $this->logger->create('create', $id, $data);
 
         // Se esistono dati extra allora eseguo la callback per gestirli
         $this->insertCallback($extraInsert);
@@ -364,6 +352,9 @@ abstract class CRUDService implements Service {
         // Callback per la modifica della lista
         $data = $this->retrieveCallback($data, ! is_null($id));
 
+        // Callback per la modifica della lista
+        $data = $this->postRetrieveCallback($data, ! is_null($id));
+
         return $data;
     }
 
@@ -411,9 +402,7 @@ abstract class CRUDService implements Service {
         $isUpdate = $this->model->update($id,$data);
 
         // Check per il logger
-        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
-            $this->logger->createLog('update', $id, $oldData, $data);
-        }
+        $this->logger->create('update', $id, $oldData, $data);
 
         // Se esistono dati extra allora eseguo la callback per gestirli
         $this->updateCallback($id,$extraUpdate);
@@ -457,13 +446,14 @@ abstract class CRUDService implements Service {
         $isDelete = $this->model->delete($id) != false;
 
         // Check per il logger
-        if ( $this->appConfig->activeLogger && $this->activeCrudLogger ) {
-            $this->logger->createLog('delete', $id, $oldData);
-        }
-
+        $this->logger->create('delete', $id, $oldData);
+        
         // Callback per ulteriori azioni di cancellazione
         $this->deleteCallback($id, $oldData);
-        
+
+        // Callback per ulteriori azioni post cancellazione
+        $this->postDeleteCallback($id, $oldData);
+
         $this->db->transComplete();
 
         // Se la transazione è fallita sollevo un eccezione
@@ -545,6 +535,8 @@ abstract class CRUDService implements Service {
      * @param array $data   Array con i dati extra da inserire
      * 
      * @return void
+     * 
+     * @deprecated  utilizzare postInsertCallback
      */
     protected function insertCallback( array $data ) : void  {} 
 
@@ -555,7 +547,8 @@ abstract class CRUDService implements Service {
      * Callback eseguita pre inserimento dei dati
      * 
      * @param array $data   Array con i dati da inserire
-     * 
+     * lla riga inserita
+     * @param array $data       Array con i dati 
      * @return array
      */
     protected function preInsertCallback( array $data ) : array  {
@@ -580,7 +573,7 @@ abstract class CRUDService implements Service {
 
 
     /**
-     * Callback eseguita pre inserimento dei dati
+     * Callback eseguita pre modifica dei dati
      * 
      * @param int   $id     Identificativo della riga da modificare
      * @param array $data   Array con i dati per la modifica
@@ -593,9 +586,8 @@ abstract class CRUDService implements Service {
 
     //----------------------------------------------------------------------------------------------------
 
-
     /**
-     * Callback eseguita post inserimento dei dati
+     * Callback eseguita post modifica dei dati
      * 
      * @param int   $id         Identificativo della riga inserita
      * @param array $data       Array con i dati extra da inserire
@@ -614,6 +606,8 @@ abstract class CRUDService implements Service {
      * @param array $data   Array con i dati extra da inserire
      * 
      * @return void
+     * 
+     * @deprecated  utilizzare postUpdateCallback
      */
     protected function updateCallback( int $id, array $data ) : void  {} 
 
@@ -638,9 +632,23 @@ abstract class CRUDService implements Service {
      * @param array $data   Dati della risorsa cancellata
      * 
      * @return void
+     * 
+     * @deprecated  utilizzare postDeleteCallback
      */
     protected function deleteCallback( int $id, array $data ) : void  {}
     
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Callback eseguita post cancellazione dei dati
+     * 
+     * @param int   $id     Identificativo risorsa cancellata
+     * @param array $data   Dati della risorsa cancellata
+     * 
+     * @return void
+     */
+    protected function postDeleteCallback( int $id, array $data ) : void  {}
+
     //---------------------------------------------------------------------------------------------------
     
     /**
@@ -664,9 +672,37 @@ abstract class CRUDService implements Service {
      * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
      * 
      * @return array
+     * 
+     * @deprecated  utilizzare postRetrieveCallback
      */
     protected function retrieveCallback( array $data, bool $isSingleResource = false ) : array  {
         return $data;
     } 
-    
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Callback per la gestione della lista post-query
+     * 
+     * @param array $data               Lista dei dati estratti
+     * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
+     * 
+     * @return array
+     */
+    protected function postRetrieveCallback( array $data, bool $isSingleResource = false ) : array  {
+        return $data;
+    } 
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Restituisce TRUE se il logger è attiva, FALSE altrimenti
+     * 
+     * @return bool
+     */
+    public function isActiveLogger() : bool {
+        return $this->activeCrudLogger;
+    }
+
+    //---------------------------------------------------------------------------------------------------
 }
