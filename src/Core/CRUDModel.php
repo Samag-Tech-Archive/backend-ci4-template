@@ -298,11 +298,14 @@ class CRUDModel extends Model {
      */
     public function getWithParams(array $options, array $params = [], array $joinFieldsFilters = [], array $joinFieldsSort = [] ) {
 
+        // Aggiungo l'alias alla tabella
+        $this->from($this->table . ' ' . $this->alias, true);
+
         // Costruisco la query con le opzioni
         if ( ! empty($options['select'])) {
 
             // Per ogni campo della select se non esiste un alias, viene inserito quello della tabella
-            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $this->table.'.'.$elem : $elem);
+            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $this->alias.'.'.$elem : $elem);
 
             $this->select('SQL_CALC_FOUND_ROWS ' . implode(',', $options['select']), FALSE);
         }
@@ -344,7 +347,7 @@ class CRUDModel extends Model {
                 $this->orderBy($joinFieldsSort[$order], $verse);
             }
             else {
-                $this->orderBy($this->table.'.'.$order, $verse);
+                $this->orderBy($this->alias.'.'.$order, $verse);
             }
             
         }
@@ -372,7 +375,7 @@ class CRUDModel extends Model {
                  * - altrimenti viene aggiunto l'alias al campo
                  * 
                  */
-                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $this->table.'.'.$field;
+                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $this->alias.'.'.$field;
 
                 // Se non esiste nessuna indicazione oltre al campo viene applicata la clausola where
                 if ( is_null($clause) ) {
@@ -431,7 +434,7 @@ class CRUDModel extends Model {
         // Controllo se è settato l'identificativo univoco, nel caso restituisco un solo array
         if ( ! is_null($options['item_id']) ){
             
-            return $this->where($this->table . '.id',$options['item_id'])->first();
+            return $this->where($this->alias . '.id',$options['item_id'])->first();
             
         }
 
