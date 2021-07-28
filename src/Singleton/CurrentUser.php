@@ -77,6 +77,14 @@ class CurrentUser {
 
     //------------------------------------------------------------------------
 
-
-
+    /**
+     * Restituisce le proprietà in formato json
+     * 
+     * @return string
+     */
+    public function toJson() : string {
+        return json_encode(self::$property);
+    }
+  
+    //------------------------------------------------------------------------
 }
