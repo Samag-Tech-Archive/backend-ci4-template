@@ -399,7 +399,7 @@ class CRUDModel extends Model {
                             $this->like($trueField, $value);
                         break;
                         case 'gte'  :
-                                $this->where($trueField . ' >=', $value);
+                            $this->where($trueField . ' >=', $value);
                         break;
                         case 'lte' :
                             $this->where($trueField . ' <=', $value);
