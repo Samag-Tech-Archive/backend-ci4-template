@@ -58,6 +58,8 @@ class CreateModule extends BaseCommand {
 	 */
 	public function run(array $params) {
 
+		helper('inflector');
+
 		// Recupero il nome del modulo
 		$moduleName = array_shift($params);
 
@@ -78,12 +80,14 @@ class CreateModule extends BaseCommand {
 		// Creo i path principali
 		$configModulePath = $modulePath.$moduleName.'/Config';
 		$controllerModulePath = $modulePath.$moduleName.'/Controllers';
+		$serviceModulePath = $modulePath.$moduleName.'/Services';
 		$modelModulePath = $modulePath.$moduleName.'/Models';
 
 		// Creo le cartelle
 		mkdir($modulePath.$moduleName);
 		mkdir($configModulePath);
 		mkdir($controllerModulePath);
+		mkdir($serviceModulePath);
 		mkdir($modelModulePath);
 
 		// Parso il template delle configurazione
@@ -91,22 +95,32 @@ class CreateModule extends BaseCommand {
 
 		write_file($configModulePath.'/Routes.php', $template);
 
-
 		// Parso il template per il controller
 		$template = str_replace('{moduleName}', $moduleName, $this->getControllerTemplate());
 
 		write_file($controllerModulePath.'/'.$moduleName.'.php', $template);
 
-		// Parso il template per il servizio
-		$template = str_replace('{moduleName}', $moduleName, $this->getServiceTemplate());
+		$modelName = singular($moduleName);
 
-		write_file($controllerModulePath.'/'.$moduleName.'Default.php', $template);
+		// Parso il template per il servizio
+		$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate());
+
+		write_file($serviceModulePath.'/'.$moduleName.'.php', $template);
+
+		$table = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $moduleName));
+
+		$table_split = explode('_', $table);
+
+		$alias = '';
+
+		foreach ( $table_split as $split ) {
+			die(substr(ucfirst($split), 1)); 
+		}
 
 		// Parso il template per il modello
-		$template = str_replace('{moduleName}', $moduleName, $this->getModelTemplate());
+		$template = str_replace(['{moduleName}', '{modelName}', '{table}', '{alias}'], [$moduleName,$modelName,$table,$alias], $this->getModelTemplate());
 
-		write_file($modelModulePath.'/'.$moduleName.'Model.php', $template);
-
+		write_file($modelModulePath.'/'.$modelName.'Model.php', $template);
 
 		CLI::write(CLI::color('Il module è stato creato', 'green'));
 	}	
@@ -166,13 +180,14 @@ class CreateModule extends BaseCommand {
 	private function getServiceTemplate() {
 		
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Controllers;
+		<?php namespace App\Modules\{moduleName}\Services;
 
 		use SamagTech\Crud\Core\CRUDService;
+		use App\Modules\{moduleName}\Models\{modelName}Model;
 		
-		class {moduleName}Default extends CRUDService {
+		class {moduleName} extends CRUDService {
 
-			protected ?string \$modelName = '';
+			protected ?string \$modelName = {modelName}Model::class;
 
 			protected array \$validationsRules = [
 				'generic'	=> [],
@@ -203,9 +218,9 @@ class CreateModule extends BaseCommand {
 
 		use SamagTech\Crud\Core\CRUDModel;
 
-		class {moduleName}Model extends CRUDModel {
+		class {modelName}Model extends CRUDModel {
 			
-			protected \$table      = '';
+			protected \$table      = '{table}';
 			protected \$alias      = '';
 		}
 		EOD;
