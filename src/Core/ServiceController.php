@@ -115,13 +115,13 @@ abstract class ServiceController extends Controller implements ServiceController
         // Recupero i dati dell'utente autenticato
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
+        // Servizio di default
+        $className = $this->getCalledClassName();
+        $this->defaultService = "App\Modules\\$className\Services\\$className";
+        
         // Inizializzo il servizio da utilizzare
         $this->service = $this->getFactory($this->currentUser->app_token ?? null);
 
-
-        // Servizio di default
-        $className = $this->getClassName();
-        $this->defaultService = "App\Modules\{$className}\Services\{$className}";
     }
 
     //--------------------------------------------------------------------------------------------
@@ -136,7 +136,10 @@ abstract class ServiceController extends Controller implements ServiceController
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
 
-            $service = "App\Modules\{$this->getClassName()}\Services\{$this->services[$token]}";
+            $calledClass = $this->getCalledClassName();
+            $nameService = $this->services[$token];
+
+            $service = "App\Modules\\$calledClass\Services\\$nameService";
 
             return new $service;
         }
