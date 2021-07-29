@@ -114,7 +114,7 @@ class CreateModule extends BaseCommand {
 		$alias = '';
 
 		foreach ( $table_split as $split ) {
-			die(substr(ucfirst($split), 1)); 
+			$alias = substr(ucfirst($split),0,1); 
 		}
 
 		// Parso il template per il modello
