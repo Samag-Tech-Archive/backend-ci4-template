@@ -19,5 +19,5 @@ interface Factory {
      * 
      * @return CRUDService Restituisce una classe CRUDService
      */
-    public function getFactory( string $token ) : CRUDService;
+    public function makeService( string $token ) : CRUDService;
 }

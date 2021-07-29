@@ -120,7 +120,7 @@ abstract class ServiceController extends Controller implements ServiceController
         $this->defaultService = "App\Modules\\$className\Services\\$className";
         
         // Inizializzo il servizio da utilizzare
-        $this->service = $this->getFactory($this->currentUser->app_token ?? null);
+        $this->service = $this->makeService($this->currentUser->app_token ?? null);
 
     }
 
@@ -132,7 +132,7 @@ abstract class ServiceController extends Controller implements ServiceController
      * @implements Factory
      * 
      */
-    public function getFactory($token): CRUDService {
+    public function makeService($token): CRUDService {
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
 
