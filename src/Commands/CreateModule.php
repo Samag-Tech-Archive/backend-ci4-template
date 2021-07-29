@@ -114,7 +114,7 @@ class CreateModule extends BaseCommand {
 		$alias = '';
 
 		foreach ( $table_split as $split ) {
-			$alias = substr(ucfirst($split),0,1); 
+			$alias .= substr(ucfirst($split),0,1); 
 		}
 
 		// Parso il template per il modello
@@ -221,7 +221,7 @@ class CreateModule extends BaseCommand {
 		class {modelName}Model extends CRUDModel {
 			
 			protected \$table      = '{table}';
-			protected \$alias      = '';
+			protected \$alias      = '{alias}';
 		}
 		EOD;
 
