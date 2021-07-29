@@ -17,14 +17,13 @@ class DeleteException extends Exception {
     private string $customMessage = 'Errore di cancellazione della risorsa';
     
     /**
-     * Codice di errore di default per un eccezione
-     * in fase di validazione
+     * Codice di errore da restituire come status http
      * 
      * @var int
      * 
-     * Default 1
+     * Default 400-Bad Request
      */
-    private int $customCode = 4;
+    private int $customCode = 400;
 
     /**
      * Costruttore.

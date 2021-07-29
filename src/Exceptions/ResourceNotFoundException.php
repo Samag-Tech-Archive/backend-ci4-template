@@ -17,14 +17,13 @@ class ResourceNotFoundException extends Exception {
     private string $customMessage = 'La risorsa non è stata trovata';
     
     /**
-     * Codice di errore di default per un eccezione
-     * in fase di validazione
+     * Codice di errore da restituire come status http
      * 
      * @var int
      * 
-     * Default 1
+     * Default 400-Not Found
      */
-    private int $customCode = 5;
+    private int $customCode = 404;
 
     /**
      * Costruttore.

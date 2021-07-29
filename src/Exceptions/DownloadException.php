@@ -17,14 +17,13 @@ class DownloadException extends Exception {
     private string $customMessage = 'Errore durante il download della risorsa';
     
     /**
-     * Codice di errore di default per un eccezione
-     * in fase di download
+     * Codice di errore da restituire come status http
      * 
      * @var int
      * 
-     * Default 1
+     * Default 400-Bad Request
      */
-    private int $customCode = 7;
+    private int $customCode = 400;
 
     /**
      * Costruttore.

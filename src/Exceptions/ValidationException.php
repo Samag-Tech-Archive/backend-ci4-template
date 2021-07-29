@@ -18,14 +18,13 @@ class ValidationException extends Exception {
     private string $customMessage = 'Errore di validazione';
     
     /**
-     * Codice di errore di default per un eccezione
-     * in fase di validazione
+     * Codice di errore da restituire come status http
      * 
      * @var int
-     * @access private
-     * Default 1
+     * 
+     * Default 400-Bad Request
      */
-    private int $customCode = 1;
+    private int $customCode = 400;
 
     /**
      * Array contentente gli errori di validazione
