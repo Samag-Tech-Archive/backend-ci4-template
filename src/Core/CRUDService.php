@@ -240,7 +240,7 @@ abstract class CRUDService implements Service {
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Inizializzo la libreria di log
-        $this->logger = new Log($this->model->getTable(), $this, $this->currentUser ?? null);
+        $this->logger = new Log($this->model->getTable(), $this, CurrentUser::getIstance() ?? null);
         
     }
 
