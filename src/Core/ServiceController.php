@@ -163,10 +163,10 @@ abstract class ServiceController extends Controller implements ServiceController
             $resourceId = $this->service->create($this->request);
         }
         catch(ValidationException $e) {
-            return $this->failValidationErrors($e->getValidationErrors());
+            return $this->failValidationErrors($e->getValidationErrors(), $e->getCode());
         }
         catch(CreateException | GenericException $e) {
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(), $e->getCode());
         }
 
         return $this->respondCreated(['item_id'  =>  $resourceId]);
@@ -188,10 +188,10 @@ abstract class ServiceController extends Controller implements ServiceController
             $data = $this->service->retrieve($this->request, $id);
         }
         catch(ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getCode());
         }
         catch(GenericException $e) {
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(), $e->getCode());
         }
         
         return $this->respond($data, 200, $this->messages['retrieve']);
@@ -213,13 +213,13 @@ abstract class ServiceController extends Controller implements ServiceController
             $this->service->update($this->request,$id);
         }
         catch(ValidationException $e) {
-            return $this->failValidationErrors($e->getValidationErrors());
+            return $this->failValidationErrors($e->getValidationErrors(), $e->getCode());
         }
         catch ( ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getCode());
         }
         catch(UpdateException | GenericException $e) {
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(), $e->getCode());
         }
 
         return $this->respondUpdated(['item_id' => $id], $this->messages['update']);
@@ -241,10 +241,10 @@ abstract class ServiceController extends Controller implements ServiceController
             $this->service->delete($this->request,$id);
         }
         catch ( ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getCode());
         }
         catch(DeleteException | GenericException $e) {
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(), $e->getCode());
         }
 
         return $this->respondDeleted(['item_id'  =>  $id], $this->messages['delete']);
