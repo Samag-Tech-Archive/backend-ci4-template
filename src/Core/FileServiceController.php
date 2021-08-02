@@ -6,6 +6,7 @@ use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Exceptions\ValidationException;
 use CodeIgniter\HTTP\Response;
 use SamagTech\Crud\Exceptions\DownloadException;
+use SamagTech\Crud\Exceptions\GenericException;
 use SamagTech\Crud\Exceptions\UploadException;
 
 /**
@@ -51,17 +52,15 @@ abstract class FileServiceController extends ServiceController implements FileSe
 
         }
         catch(ValidationException $e ) {
-            return $this->failValidationError($e->getValidationError());
+            return $this->failValidationErrors($e->getValidationErrors(), $e->getHttpCode());
         } 
-        catch(CreateException $e ) {
-            return $this->fail($e->getMessage());
+        catch(CreateException | UploadException | GenericException $e ) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
         }
         catch(ResourceNotFoundException $e) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
         }
-        catch(UploadException $e) {
-            return $this->fail($e->getMessage());
-        }
+
         
         return $this->respondCreated(['item_id' => $resourceID], $this->messages['upload_file']);
     }
@@ -84,10 +83,10 @@ abstract class FileServiceController extends ServiceController implements FileSe
             $data = $this->service->download($this->request,$fileID);
         }
         catch(ResourceNotFoundException $e) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
         }
-        catch(DownloadException $e) {
-            return $this->fail($e->getMessage());
+        catch(DownloadException | GenericException $e) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
         return $this->respond($data, 200, $this->messages['download_file']);
@@ -109,10 +108,10 @@ abstract class FileServiceController extends ServiceController implements FileSe
             $this->service->deleteFile($this->request, $fileID);
         }
         catch(ResourceNotFoundException $e) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
         }
-        catch(DeleteException $e) {
-            return $this->fail($e->getMessage());
+        catch(DeleteException | GenericException $e) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
         return $this->respondDeleted(['item_id'  =>  $fileID], $this->messages['delete_file']);
@@ -137,10 +136,10 @@ abstract class FileServiceController extends ServiceController implements FileSe
             $data = $this->service->downloadAll($this->request,$resourceID);
         }
         catch(ResourceNotFoundException $e) {
-            return $this->failNotFound($e->getMessage());
+            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
         }
-        catch(DownloadException $e) {
-            return $this->fail($e->getMessage());
+        catch(DownloadException | GenericException $e) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
         return $this->respond($data, 200, $this->messages['download_file']);
