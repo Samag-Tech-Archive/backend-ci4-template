@@ -1,13 +1,11 @@
 <?php namespace SamagTech\Crud\Exceptions;
 
-use Exception;
-
 /**
  * Eccezione per validazione in fase di creazione e modifica dei dati.
  * 
  * @author Alessandro Marotta
  */
-class ValidationException extends Exception {
+class ValidationException extends AbstractCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore
@@ -22,9 +20,9 @@ class ValidationException extends Exception {
      * 
      * @var int
      * 
-     * Default 400-Bad Request
+     * Default 422-UNPROCESSABLE ENTITY 
      */
-    private int $customCode = 400;
+    private int $httpCode = 422;
 
     /**
      * Array contentente gli errori di validazione
@@ -42,13 +40,13 @@ class ValidationException extends Exception {
      * @param int       $code      Codice di errore dell'eccezione ( Default 'null') 
      * @param Exception $previous  Eccezione precedente (Default 'null')
      */
-    public function __construct( array $errors = [], $message = null, $code = null, Exception $previous = null ) {
+    public function __construct( array $errors = [], $message = null, $code = null, \Exception $previous = null ) {
 
         // Controllo se è settato il messaggio
         $message ??= $this->customMessage;
 
         // Controllo se è settato il codice
-        $code   ??= $this->customCode;
+        $code   ??= $this->httpCode;
 
         // Setto l'array degli errori
         $this->errors = $errors;
