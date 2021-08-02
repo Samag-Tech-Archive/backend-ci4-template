@@ -67,8 +67,8 @@ abstract class ServiceController extends Controller implements ServiceController
      * Lista di servizi esterni al default service
      * 
      * Es. [
-     *  'token1' => 'Servizio1',
-     *  'token2' => 'Servizio2',
+     *  'token1' => '\App\Modules\Examples\Services\Examples1::class ',
+     *  'token2' => '\App\Modules\Examples\Services\Examples2::class ',
      * ]
      * 
      * @var string[]
@@ -135,13 +135,7 @@ abstract class ServiceController extends Controller implements ServiceController
     public function makeService($token): CRUDService {
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
-
-            $calledClass = $this->getCalledClassName();
-            $nameService = $this->services[$token];
-
-            $service = "App\Modules\\$calledClass\Services\\$nameService";
-
-            return new $service;
+            return new $this->services[$token];
         }
         
         return new $this->defaultService;
