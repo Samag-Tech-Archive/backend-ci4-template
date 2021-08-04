@@ -653,7 +653,7 @@ abstract class CRUDService implements Service {
      * 
      * @return array    Opzioni modificate
      */
-    protected function preRetrieveCallback(array $options, array &$params ) {
+    protected function preRetrieveCallback(array $options, array &$params ) : array {
         return $options;
     } 
 
