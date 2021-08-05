@@ -15,7 +15,7 @@ abstract class AbstractCrudException extends Exception {
      * 
      * @var string
      */
-    private string $customMessage = 'C\'è stato un errore';
+    protected string $customMessage = 'C\'è stato un errore';
 
     /**
      * Codice di errore da restituire come status http
@@ -24,7 +24,7 @@ abstract class AbstractCrudException extends Exception {
      * 
      * Default 400-Bad Request
      */
-    private int $httpCode = 400;
+    protected int $httpCode = 400;
 
     //-------------------------------------------------------------------------------------------------------
 
