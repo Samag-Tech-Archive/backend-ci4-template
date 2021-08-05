@@ -12,6 +12,6 @@ class UpdateException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'Errore di modifica della risorsa';
+    protected string $customMessage = 'Errore di modifica della risorsa';
     
 }

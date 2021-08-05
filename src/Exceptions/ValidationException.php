@@ -11,18 +11,20 @@ class ValidationException extends AbstractCrudException {
      * Messaggio di default se non è settato nel costruttore
      * 
      * @var string
-     * @access private
+     * @access protected
      */
-    private string $customMessage = 'Errore di validazione';
+    protected string $customMessage = 'Errore di validazione';
     
     /**
      * Codice di errore da restituire come status http
      * 
      * @var int
      * 
+     * @access protected
+     * 
      * Default 422-UNPROCESSABLE ENTITY 
      */
-    private int $httpCode = 422;
+    protected int $httpCode = 422;
 
     /**
      * Array contentente gli errori di validazione

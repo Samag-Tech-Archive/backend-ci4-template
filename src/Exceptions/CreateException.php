@@ -12,6 +12,6 @@ class CreateException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'Errore durante la creazione della risorsa';    
+    protected string $customMessage = 'Errore durante la creazione della risorsa';    
 
 }

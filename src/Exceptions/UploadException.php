@@ -12,6 +12,6 @@ class UploadException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'Errore durante l\'upload della risorsa';
+    protected string $customMessage = 'Errore durante l\'upload della risorsa';
     
 }

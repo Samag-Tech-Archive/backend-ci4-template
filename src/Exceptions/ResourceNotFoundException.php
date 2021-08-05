@@ -12,7 +12,7 @@ class ResourceNotFoundException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'La risorsa non è stata trovata';
+    protected string $customMessage = 'La risorsa non è stata trovata';
     
     /**
      * Codice di errore da restituire come status http
@@ -21,6 +21,6 @@ class ResourceNotFoundException extends AbstractCrudException {
      * 
      * Default 400-Not Found
      */
-    private int $httpCode = 404;
+    protected int $httpCode = 404;
 
 }

@@ -12,7 +12,7 @@ class DownloadException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'Errore durante il download della risorsa';
+    protected string $customMessage = 'Errore durante il download della risorsa';
     
 
 }

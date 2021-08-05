@@ -12,6 +12,6 @@ class DeleteException extends AbstractCrudException {
      * 
      * @var string
      */
-    private string $customMessage = 'Errore di cancellazione della risorsa';
+    protected string $customMessage = 'Errore di cancellazione della risorsa';
     
 }
