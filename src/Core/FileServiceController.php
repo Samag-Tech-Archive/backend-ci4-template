@@ -43,7 +43,7 @@ abstract class FileServiceController extends ServiceController implements FileSe
      * 
      * @return \CodeIgniter\HTTP\Response
      */
-    public function uploads(int $resourceID): Response {
+    public function uploads(?int $resourceID = null): Response {
 
         try {
 
@@ -127,13 +127,13 @@ abstract class FileServiceController extends ServiceController implements FileSe
      * 
      * @return \CodeIgniter\HTTP\Response
      */
-    public function downloadAll(int $resourceID): Response {
+    public function downloadAllByResource(int $resourceID): Response {
 
         // Conterrà path del file ed il nome originale
-        $data = null;
+        $zipname = null;
 
         try {
-            $data = $this->service->downloadAll($this->request,$resourceID);
+            $zipname = $this->service->downloadAllByResource($this->request,$resourceID);
         }
         catch(ResourceNotFoundException $e) {
             return $this->failNotFound($e->getMessage(), $e->getHttpCode());
@@ -142,7 +142,32 @@ abstract class FileServiceController extends ServiceController implements FileSe
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
-        return $this->respond($data, 200, $this->messages['download_file']);
+        return $this->respond(['path' => $zipname], 200, $this->messages['download_file']);
+
+    }
+    //---------------------------------------------------------------------------
+
+    /**
+     * Route per il download di una lista di file
+     * 
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function downloadFiles(): Response {
+
+        // Conterrà path del file ed il nome originale
+        $zipname = null;
+
+        try {
+            $zipname = $this->service->downloadFiles($this->request);
+        }
+        catch(ResourceNotFoundException $e) {
+            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
+        }
+        catch(DownloadException | GenericException $e) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
+        }
+
+        return $this->respond(['path' => $zipname], 200, $this->messages['download_file']);
 
     }
 

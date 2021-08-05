@@ -33,7 +33,7 @@ class CreateModule extends BaseCommand {
 	 *
 	 * @var string
 	 */
-	protected $usage = 'make:module [module_name]';
+	protected $usage = 'make:module [module_name] [options]';
 
 	/**
 	 * The Command's Arguments
@@ -49,7 +49,10 @@ class CreateModule extends BaseCommand {
 	 *
 	 * @var array
 	 */
-	protected $options = [];
+	protected $options = [
+		'--file' 		=> 'Modulo con gestione di file',
+		// '--only-file' 	=> 'Modulo con di file'
+	];
 
 	/**
 	 * Actually execute a command.
@@ -62,6 +65,28 @@ class CreateModule extends BaseCommand {
 
 		// Recupero il nome del modulo
 		$moduleName = array_shift($params);
+
+		// if ( CLI::getOption('file') && CLI::getOption('only-file') ) {
+		// 	CLI::write('Le opzioni --file e --only-file non possono essere usate contemporaneamente', 'red');
+		// 	return;
+		// }
+
+		// Implementazione gestione di 
+		$file = CLI::getOption('file') ?? null;
+
+		if ( $file && ! is_string($file) ) {
+			$file = CLI::prompt('Inserisci il nome del modello del file');
+		}
+
+		$useFile = $file && ! is_null($file) && is_string($file);
+
+		// $onlyFile = CLI::getOption('only-file') ?? null;
+
+		// if ( $onlyFile && ! is_string($onlyFile) ) {
+		// 	$onlyFile = CLI::prompt('Inserisci il nome del modello del file');
+		// }
+
+		// $useOnlyFile = $onlyFile && ! is_null($onlyFile) && is_string($onlyFile);
 
 		// Controllo se il nome è presente, altrimenti lo faccio inserire
 		if ( empty($moduleName) ) {
@@ -91,19 +116,24 @@ class CreateModule extends BaseCommand {
 		mkdir($modelModulePath);
 
 		// Parso il template delle configurazione
-		$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $this->getConfigTemplate());
+		$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate());
 
 		write_file($configModulePath.'/Routes.php', $template);
 
 		// Parso il template per il controller
-		$template = str_replace('{moduleName}', $moduleName, $this->getControllerTemplate());
+		$template = str_replace('{moduleName}', $moduleName, $useFile ? $this->getControllerWithFileTemplate() : $this->getControllerTemplate());
 
 		write_file($controllerModulePath.'/'.$moduleName.'.php', $template);
 
 		$modelName = singular($moduleName);
 
 		// Parso il template per il servizio
-		$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate());
+		if ( $useFile ) {
+			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate());
+		} 
+		else {
+			$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate());
+		}
 
 		write_file($serviceModulePath.'/'.$moduleName.'.php', $template);
 
@@ -122,7 +152,25 @@ class CreateModule extends BaseCommand {
 
 		write_file($modelModulePath.'/'.$modelName.'Model.php', $template);
 
-		CLI::write(CLI::color('Il module è stato creato', 'green'));
+		if ( $useFile ) {
+
+			$table = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', plural($file)));
+
+			$table_split = explode('_', $table);
+
+			$alias = '';
+
+			foreach ( $table_split as $split ) {
+				$alias .= substr(ucfirst($split),0,1); 
+			}
+
+			// Parso il template per il modello
+			$template = str_replace(['{moduleName}', '{fileModelName}', '{table}', '{alias}'], [$moduleName,$file,$table,$alias], $this->getModelWithFileTemplate());
+
+			write_file($modelModulePath.'/'.$file.'Model.php', $template);
+		}
+
+		CLI::write(CLI::color('Il modulo è stato creato', 'green'));
 	}	
 
 	//-----------------------------------------------------------------------------------
@@ -155,6 +203,41 @@ class CreateModule extends BaseCommand {
 	}
 
 	//-----------------------------------------------------------------------------------
+	
+	/**
+	 * Restituisce il template del file di config
+	 * 
+	 */
+	private function getConfigWithFileTemplate() {
+
+		return <<<EOD
+		<?php 
+		
+		if ( !isset(\$routes) ) {
+			\$routes = \Config\Services::routes(true);
+		}
+
+		\$routes->setDefaultNamespace('App\Modules\{moduleName}\Controllers');
+		
+		\$routes->group('{route}', function(\$subroutes) {
+
+			\$subroutes->get('/', '{moduleName}::retrieve');
+			\$subroutes->get('(:num)', '{moduleName}::retrieve/$1');
+			\$subroutes->post('/', '{moduleName}::create');
+			\$subroutes->put('(:num)', '{moduleName}::update/$1');
+			\$subroutes->delete('(:num)', '{moduleName}::delete/$1');
+			\$subroutes->post('files', '{moduleName}::uploads');
+			\$subroutes->post('files/(:num)', '{moduleName}::uploads/$1');
+			\$subroutes->get('files/(:num)', '{moduleName}::download/$1');
+			\$subroutes->delete('files/(:num)', '{moduleName}::deleteFile/$1');
+			\$subroutes->get('files/(:num)/resource', '{moduleName}::downloadAllByResource/$1');
+			\$subroutes->get('files', '{moduleName}::downloadFiles');
+
+		});
+		EOD;
+	}
+
+	//-----------------------------------------------------------------------------------
 
 	/**
 	 * Restituisce il template del controller
@@ -168,6 +251,23 @@ class CreateModule extends BaseCommand {
 		use SamagTech\Crud\Core\ServiceController;
 		
 		class {moduleName} extends ServiceController {}
+		EOD;		
+	}
+
+	//-----------------------------------------------------------------------------------
+
+	/**
+	 * Restituisce il template del controller
+	 * 
+	 */
+	private function getControllerWithFileTemplate() {
+
+		return <<<EOD
+		<?php namespace App\Modules\{moduleName}\Controllers;
+
+		use SamagTech\Crud\Core\FileServiceController;
+		
+		class {moduleName} extends FileServiceController {}
 		EOD;		
 	}
 
@@ -197,6 +297,45 @@ class CreateModule extends BaseCommand {
 
 			protected array \$validationsCustomMessage = [];
 			
+			public function __construct() {
+				parent::__construct();
+			}
+		}
+		EOD;
+	}
+
+	//-----------------------------------------------------------------------------------
+	
+	/**
+	 * Restituisce il template per il servizio
+	 * 
+	 */
+	private function getServiceWithFileTemplate() {
+		
+		return <<<EOD
+		<?php namespace App\Modules\{moduleName}\Services;
+
+		use SamagTech\Crud\Core\CRUDFileService;
+		use App\Modules\{moduleName}\Models\{modelName}Model;
+		use App\Modules\{moduleName}\Models\{fileModelName}Model;
+		
+		class {moduleName} extends CRUDFileService {
+
+			protected ?string \$modelName = {modelName}Model::class;
+
+			protected ?string \$fileModelName = {fileModelName}Model::class;
+
+			protected array \$validationsRules = [
+				'generic'	=> [],
+				'insert'	=> [],
+				'update'	=> [],
+			];
+
+			protected array \$validationsCustomMessage = [];
+			
+			protected array \$validationsUploadsRules = [];
+
+			protected array \$validationsUploadsCustomMessage = [];
 			
 			public function __construct() {
 				parent::__construct();
@@ -208,7 +347,7 @@ class CreateModule extends BaseCommand {
     //-----------------------------------------------------------------------------------
 	
 	/**
-	 * Restituisce il template per il servizio
+	 * Restituisce il template per il modello
 	 * 
 	 */
 	private function getModelTemplate() {
@@ -222,6 +361,40 @@ class CreateModule extends BaseCommand {
 			
 			protected \$table      = '{table}';
 			protected \$alias      = '{alias}';
+		}
+		EOD;
+
+	}
+
+	//-----------------------------------------------------------------------------------
+	
+	/**
+	 * Restituisce il template per il modello con l'implemenazione dei file
+	 * 
+	 */
+	private function getModelWithFileTemplate() {
+		
+		return <<<EOD
+		<?php namespace App\Modules\{moduleName}\Models;
+
+		use SamagTech\Crud\Core\CRUDModel;
+		use SamagTech\Crud\Core\FileModelInterface;
+
+		class {fileModelName}Model extends CRUDModel implements FileModelInterface {
+			
+			protected \$table      = '{table}';
+			protected \$alias      = '{alias}';
+
+
+			public function getFileByID(int \$fileID) : ?array {
+				// Code ...
+				return null;
+			}
+
+			public function getFilesByResource(int \$resourceID) : ?array {
+				// Code...
+				return null;
+			}
 		}
 		EOD;
 

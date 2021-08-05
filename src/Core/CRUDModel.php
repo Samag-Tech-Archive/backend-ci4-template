@@ -450,6 +450,17 @@ class CRUDModel extends Model {
     } 
 
     //---------------------------------------------------------------------
+
+    /**
+     * Funzione che controlla se un valore è univoco nella tabella
+     * 
+     * @return bool True se è univoco, altrimenti false
+     */
+    public function isUnique(string $column, $value) : bool {
+        return is_null($this->where($column, $value)->first());
+    }
+
+    //---------------------------------------------------------------------
     
 	/**
 	 * 

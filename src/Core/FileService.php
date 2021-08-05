@@ -25,7 +25,7 @@ interface FileService {
      * 
      * @return bool     TRUE se l'upload è stato effettuato con successo, FALSE altrimenti
      */
-    public function uploads(IncomingRequest $request, int $resourceId) : bool;
+    public function uploads(IncomingRequest $request, ?int $resourceID = null) : bool;
 
     //-----------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ interface FileService {
      * 
      * @return array    Contiene il path per il download e il nome originale del file
      */
-    public function download(IncomingRequest $request, int $fileId ) : array;
+    public function download(IncomingRequest $request, int $fileID ) : array;
 
     //-----------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ interface FileService {
      * 
      * @return bool     TRUE se la cancellazione è stata effettuata con successo, FALSE altrimenti
      */
-    public function deleteFile(IncomingRequest $request, int $fileId) : bool;
+    public function deleteFile(IncomingRequest $request, int $fileID) : bool;
 
 
     //-----------------------------------------------------------------------
@@ -70,9 +70,23 @@ interface FileService {
      * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
      * 
-     * @return array    Contiene il path per il download e il nome originale del file
+     * @return string   Path del file
      */
-    public function downloadAll( IncomingRequest $request, int $resourceId );
+    public function downloadAllResource(IncomingRequest $request, int $resourceID) : string;
+
+    //-----------------------------------------------------------------------
+
+    /**
+     * Funzione per il download di più file
+     * 
+     * @param IncomingRequest   $request    Dati della richiesta
+     * 
+     * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
+     * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
+     * 
+     * @return string    Path del file
+     */
+    public function downloadFiles(IncomingRequest $request) : string;
 
     //-----------------------------------------------------------------------
 

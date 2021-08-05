@@ -1,5 +1,6 @@
 <?php namespace SamagTech\Crud\Core;
 
+use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\HTTP\IncomingRequest;
 use SamagTech\Crud\Exceptions\CreateException;
 use SamagTech\Crud\Exceptions\DeleteException;
@@ -50,6 +51,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
      */
     protected array $validationsUploadsCustomMessage = [];
 
+    protected ?string $pathUpload = null;
+    
+
     //---------------------------------------------------------------------------------
 
     /**
@@ -66,6 +70,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         else {
             $this->fileModel = model($this->fileModelName);
         }
+
+        // Setto il path di default
+        $this->pathUpload = $this->pathUpload ?? $this->appConfig->uploadsPath;
     }
 
     //---------------------------------------------------------------------------------
@@ -74,13 +81,13 @@ abstract class CRUDFileService extends CRUDService implements FileService {
      * {@inheritDoc}
      * 
      */
-    public function uploads(IncomingRequest $request, int $resourceID): bool {
+    public function uploads(IncomingRequest $request, ?int $resourceID = null): bool {
 
         // Validazione dei file
         $this->checkValidationFile($request);
 
-        // Recupero i dati del documento
-        $document = $this->model->setId($resourceID)->get();
+        // Recupero i dati della risorsa
+        $resource = is_null($resourceID) ? null : $this->model->setId($resourceID)->get();
 
         // Recupero i file
         $files = $request->getFileMultiple('files');
@@ -88,27 +95,29 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         // Dati da inserire nel database
         $toInsert = [];
 
+        // Callback pre-upload
+        $this->preUploadCallback($files, $resource);
+
         // Carico ogni file
         foreach ( $files as $file ) {
 
-            // Se il file non è valido lancio un eccezione
-            if ( ! $file->isValid() ) throw new UploadException(); 
+            if ( ! $file->hasMoved() && $file->isValid() ) {
 
-            if ( ! $file->hasMoved() ) {
+                // Controllo che il nome hashato del file sia univoco
+                do {
+                    $hashName = $file->getRandomName();
+                }
+                while( ! $this->fileModel->isUnique('hash_name', $hashName) );
 
-                $hashName = $file->getRandomName();
-                $file->move($this->appConfig->uploadsPath.$document['folder'], $hashName);
+                // Sposta il file
+                $file->move($this->pathUpload, $hashName);
 
-                // Genero i dati da inserire nel database
-                $toInsert[] = [
-                    'name'          =>  $file->getClientName(),
-                    'hash_name'     =>  $hashName,
-                    'extension'     =>  $file->getClientExtension(),
-                    'size'          =>  $file->getSizeByUnit('mb'),
-                    'document_id'   =>  $resourceID
-                ];
-            }   
+                $toInsert[] = $this->createUploadRow($file, $hashName, $resource);
 
+            }
+            else {
+                $this->errors[] = $file;
+            }
         }
 
         // Inserisco i dati nel db
@@ -117,7 +126,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         } 
 
         // Crea il log
-        $this->logger->create('upload', $resourceID, $toInsert);
+        // $this->logger->create('upload', $resourceID, $toInsert);
         
         return true;
 
@@ -138,10 +147,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new ResourceNotFoundException('Il file non esiste');
         }
         
-        return [
-            'path'          => $file['document_folder'].'/'.$file['hash_name'],
-            'original_name' => $file['name']
-        ];
+        return $this->getDownloadData($file);
     }
 
     //---------------------------------------------------------------------------------
@@ -156,17 +162,11 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         $file = null;
         
         // Controllo se il file esiste
-        if  ( is_null($file = $this->fileModel->find($fileID)) ) {
+        if  ( is_null($file = $this->fileModel->getFileByID($fileID)) ) {
             throw new ResourceNotFoundException('Il file non esiste');
         }
 
-        // Recupero i dati del documento
-        $document = $this->model->find($file['document_id']);
-        
-        // Controllo se il documento è stato confermato
-        if ( $document['is_confirmed'] ) {
-            throw new DeleteException('Non puoi cancellare i file se il documento è confermato');
-        }
+        $this->preDeleteFileCallback($file);
 
         $this->db->transStart();
 
@@ -174,9 +174,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         $deleted = $this->fileModel->delete($fileID) != false;
         
         if ( $deleted ) { 
-        
+            
             // Cancello il file
-            if ( ! unlink($this->appConfig->uploadsPath.$document['folder'].'/'.$file['hash_name']) ) {
+            if ( ! unlink($this->pathUpload.$file['hash_name']) ) {
                 throw new DeleteException('Errore durante la cancellazione del file');
             } 
         }
@@ -200,17 +200,20 @@ abstract class CRUDFileService extends CRUDService implements FileService {
      * {@inheritDoc}
      * 
      */
-    public function downloadAll( IncomingRequest $request, int $resourceId ) {
+    public function downloadAllByResource(IncomingRequest $request, int $resourceID ) :  string {
         
-        $document = null;
+        $resource = null;
 
         // Controllo se è installato il plugin di zip
         if ( ! \extension_loaded('zip') ) throw new DownloadException('L\'estensione Zip non è installata');
 
         // Controllo se il file esiste
-        if ( is_null($document = $this->model->find($resourceId)) ) {
-            throw new ResourceNotFoundException('Il documento non esiste');
+        if ( is_null($resource = $this->model->find($resourceID)) ) {
+            throw new ResourceNotFoundException('La risorsa non esiste');
         }
+
+        // Recupero il nome da dare allo zip 
+        $zipname = $request->getGet('zipname') ?? null;
 
         // Controllo se esiste la cartella temporanea
         if ( ! file_exists($this->appConfig->tmpPath) ) {
@@ -218,14 +221,19 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         }
 
         // Recupero tutti i file del documento
-        $files = $this->fileModel->getFileByMultiDocumentsID([$document['id']]);
+        $files = $this->fileModel->getFilesByResource($resource['id']);
 
         if ( is_null($files) ) {
             throw new DownloadException('Non ci sono file da scaricare');
         }
 
         // Creo il nome dello zip con l'identificativo
-        $zipname = 'documento_n_'.$document['id'].'.zip';
+        if ( ! is_null($zipname) ) {
+            $zipname = str_replace('.zip','', $zipname).'.zip';
+        }
+        else {
+            $zipname = 'Risorsa_n_'.$resource['id'].'.zip';
+        }
 
         $zip = new ZipArchive();
 
@@ -233,62 +241,65 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new DownloadException('Errore creazione archivio');
         }
 
-        // Salvo i file aggiunti
-        $filesAdded = [];
-
-        // Nome del file da aggiungere all'archivio
-        $filename = null;
-
-        foreach ( $files as $file ) {
-
-            /**
-             * Controllo se ci sono file con lo stesso nome da inserire nell'archivio.
-             * 
-             * Salvo i file caricato nell'array con chiave il nome del file e come valore il numero di file con lo stesso nome.
-             * 
-             * Se il file non si trova negli aggiunti lo inserisco e gli imposto come valore 1 essendo il primo,
-             * altrimenti se il file già esiste negli aggiunti recupero il numero attuale di file con lo stesso nome
-             * ed incremento. Successivamente viene eliminata l'estensione e viene aggiunto al nome il numero duplicato del nome
-             * con la seguente sintassi "-NUMERO_ATTUALI" e viene riaggiunta l'estensione.
-             * 
-             * Es. 3 file di nome "Test.pdf"
-             *  L'archivio conterrà:
-             *      - Test.pdf
-             *      - Test-1.pdf
-             *      - Test-2.pdf
-             */
-            if ( ! in_array($file['name'], array_keys($filesAdded), true) ) {
-                
-                if ( ! isset($filesAdded[$file['name']] ) ) {
-                    $filesAdded[$file['name']] = 1;
-                }
-
-                $filename = $file['name'];
-            }
-            else {
-
-                // Recupero il numero di file con lo stesso nome già caricati
-                $actualFileWithSameName = $filesAdded[$file['name']];
-
-                $filesAdded[$file['name']] += 1;
-
-                $nameWithoutExtension = str_replace('.'.$file['extension'], '' , $file['name']);
-
-                // Imposto il nuovo nome
-                $filename = $nameWithoutExtension.'-'.$actualFileWithSameName.'.'.$file['extension'];        
-            }
-
-            // Aggiunto il file all'archivio.
-            $zip->addFile($this->appConfig->uploadsPath.$document['folder'].'/'.$file['hash_name'], $filename);
-        }
+        // Aggiunge i file all'archivio
+        $zip = $this->addFileToZip($zip, $files);
 
         $zip->close();
         
-        return [
-            'path' =>   $zipname,
-        ];
+        return $zipname;
     }
 
+    //---------------------------------------------------------------------------------
+    
+    /**
+     * {@inheritDoc}
+     * 
+     */
+    public function downloadFiles(IncomingRequest $request) : string {
+
+        // Controllo se è installato il plugin di zip
+        if ( ! \extension_loaded('zip') ) throw new DownloadException('L\'estensione Zip non è installata');
+
+        // Recupero la lista di file 
+        $fileIDs = $request->getGet('files');
+
+        // Recupero il nome da dare allo zip 
+        $zipname = $request->getGet('zipname') ?? null;
+
+        // Controllo se esiste la cartella temporanea
+        if ( ! file_exists($this->appConfig->tmpPath) ) {
+            mkdir($this->appConfig->tmpPath);
+        }
+
+        // Recupero tutti i file del documento
+        $files = $this->fileModel->find(explode(',', $fileIDs));
+
+        if ( is_null($files) ) {
+            throw new DownloadException('Non ci sono file da scaricare');
+        }
+
+        // Creo il nome dello zip con l'identificativo
+        if ( ! is_null($zipname) ) {
+            $zipname = str_replace('.zip','', $zipname).'.zip';
+        }
+        else {
+            $zipname = 'files.zip';
+        }
+
+        $zip = new ZipArchive();
+
+        if ($zip->open($this->appConfig->tmpPath.$zipname, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE ) {
+            throw new DownloadException('Errore creazione archivio');
+        }
+
+        // Aggiunge i file all'archivio
+        $zip = $this->addFileToZip($zip, $files);
+        
+        $zip->close();
+        
+        return $zipname;
+    }
+    
     //---------------------------------------------------------------------------------
 
     /**
@@ -314,12 +325,133 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             $validation->setRules($this->validationsUploadsRules,$this->validationsUploadsCustomMessage);
 
             // Lancio la validazione, se fallisce lancio un eccezione
-            if ( ! $validation->withRequest($request)->run()) {
-                
+            if ( ! $validation->withRequest($request)->run()) {           
                 throw new ValidationException($validation->getErrors());
             }
         }
     }
 
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Funzione per l'aggiunta dei file allo zip
+     * 
+     * @param ZipArchive        $zip    Istanza dello zip
+     * @param UploadedFile[]    $files  Lista dei file
+     * 
+     * @return ZipArchive 
+     */
+    protected function addFileToZip(ZipArchive $zip, array $files) : ZipArchive {
+
+         // Salvo i file aggiunti
+         $filesAdded = [];
+
+         // Nome del file da aggiungere all'archivio
+         $filename = null;
+ 
+         foreach ( $files as $file ) {
+ 
+             /**
+              * Controllo se ci sono file con lo stesso nome da inserire nell'archivio.
+              * 
+              * Salvo i file caricato nell'array con chiave il nome del file e come valore il numero di file con lo stesso nome.
+              * 
+              * Se il file non si trova negli aggiunti lo inserisco e gli imposto come valore 1 essendo il primo,
+              * altrimenti se il file già esiste negli aggiunti recupero il numero attuale di file con lo stesso nome
+              * ed incremento. Successivamente viene eliminata l'estensione e viene aggiunto al nome il numero duplicato del nome
+              * con la seguente sintassi "-NUMERO_ATTUALI" e viene riaggiunta l'estensione.
+              * 
+              * Es. 3 file di nome "Test.pdf"
+              *  L'archivio conterrà:
+              *      - Test.pdf
+              *      - Test-1.pdf
+              *      - Test-2.pdf
+              */
+             if ( ! in_array($file['name'], array_keys($filesAdded), true) ) {
+                 
+                 if ( ! isset($filesAdded[$file['name']] ) ) {
+                     $filesAdded[$file['name']] = 1;
+                 }
+ 
+                 $filename = $file['name'];
+             }
+             else {
+ 
+                 // Recupero il numero di file con lo stesso nome già caricati
+                 $actualFileWithSameName = $filesAdded[$file['name']];
+ 
+                 $filesAdded[$file['name']] += 1;
+ 
+                 $nameWithoutExtension = str_replace('.'.$file['extension'], '' , $file['name']);
+ 
+                 // Imposto il nuovo nome
+                 $filename = $nameWithoutExtension.'-'.$actualFileWithSameName.'.'.$file['extension'];        
+             }
+ 
+             // Aggiunto il file all'archivio.
+             $zip->addFile($this->pathUpload.$file['hash_name'], $filename);
+         }
+
+        return $zip;
+    }
+
+    //------------------------------------------------------------------------------------------
+
+    /** 
+     * Callback per gestione dei dati pre-upload
+     * 
+     * @access protected
+     * 
+     * @param array         &$files     Lista dei file da caricare
+     * @param array|null    $resource  Risorsa da associare (Default null)
+     * 
+     * @return void
+     */
+    protected function preUploadCallback(array &$files, ?array $resource = null) : void {}
+
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Funzione per la definizione della riga da inserire nel database per i file
+     *  
+     * @access protected
+     * 
+     * @abstract 
+     * 
+     * @param UploadedFile  $file           Istanza del file
+     * @param string        $hashName       Nome hashato del file caricato
+     * @param array|null    $resource       Dati delle risorsa a cui collegare se esiste
+     * 
+     * @return array    Riga da inserire nel database
+     */
+    abstract function createUploadRow(UploadedFile $file, string $hashName, ?array $resource = null ) : array;
+
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Funzione che restituisce il formato delle risposta al download
+     * 
+     * @access protected
+     * 
+     * @abstract
+     * 
+     * @param array $file   Dati del file 
+     * 
+     * @return array    Risposta da inviare al client (Es. ['original_path' => PATH_FILE, 'original_name' => NOME_ORIGINALE])
+     */
+    abstract function getDownloadData(array $file) : array;
+
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Callback eseguita pre-cancellazione del file
+     *  
+     * @param array $file   File da cancellare
+     * 
+     * @return void
+     */
+    protected function preDeleteFileCallback(array $file) : void {}
+
+    //------------------------------------------------------------------------------------------
 
 }

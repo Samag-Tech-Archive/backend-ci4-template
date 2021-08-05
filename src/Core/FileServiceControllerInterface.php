@@ -47,13 +47,22 @@ interface FileServiceControllerInterface {
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per il download di tutti i file
+     * Route per il download di tutti i file di una risorsa
      * 
-     * @param int $resourceID   Identificativo della risorsa a cui sono legati tutti i file da scaricarew
+     * @param int $resourceID   Identificativo della risorsa a cui sono legati tutti i file da scaricare
      * 
      * @return \CodeIgniter\HTTP\Response
      */
-    public function downloadAll(int $resourceID) : Response; 
+    public function downloadAllByResource(int $resourceID) : Response; 
+
+    //--------------------------------------------------------------------------------------------
+    
+    /**
+     * Route per il download di una lista di file
+     * 
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function downloadFiles() : Response; 
 
     //--------------------------------------------------------------------------------------------
 
