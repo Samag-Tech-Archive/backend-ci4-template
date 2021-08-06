@@ -51,8 +51,22 @@ abstract class CRUDFileService extends CRUDService implements FileService {
      */
     protected array $validationsUploadsCustomMessage = [];
 
+    /**
+     * Path per l'upload
+     * 
+     * @var string
+     * @access protected
+     * Default 'null'
+     */
     protected ?string $pathUpload = null;
-    
+
+    /**
+     * Array contenente il nome dei file che hanno subito un problema durante l'upload
+     * 
+     * @var string[]
+     * @access protected
+     */
+    protected array $errors = [];
 
     //---------------------------------------------------------------------------------
 
@@ -116,7 +130,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
             }
             else {
-                $this->errors[] = $file;
+                $this->errors[] = $file->getClientName();
             }
         }
 
@@ -125,8 +139,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new CreateException();
         } 
 
-        // Crea il log
-        // $this->logger->create('upload', $resourceID, $toInsert);
+        if ( $this->hasUploadErrors() ) {
+            throw new UploadException($this->errors, 'Alcuni file non sono stati caricati');
+        }
         
         return true;
 
@@ -394,6 +409,29 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
         return $zip;
     }
+
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Funziona per controllare se ci sono stati errori
+     * 
+     * @return bool TRUE se ci sono stati errori, altrimenti FALSE
+     */
+    public function hasUploadErrors() : bool {
+        return count($this->errors) > 0;
+    }
+
+    //------------------------------------------------------------------------------------------
+
+    /**
+     * Funzione che restituisce la lista degli errori che hanno avuto un errore
+     * 
+     * @return string[]
+     */
+    public function getUploadErrors() : array {
+        return $this->errors;
+    }
+
 
     //------------------------------------------------------------------------------------------
 

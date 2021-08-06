@@ -72,7 +72,7 @@ interface FileService {
      * 
      * @return string   Path del file
      */
-    public function downloadAllResource(IncomingRequest $request, int $resourceID) : string;
+    public function downloadAllByResource(IncomingRequest $request, int $resourceID) : string;
 
     //-----------------------------------------------------------------------
 

@@ -53,15 +53,17 @@ abstract class FileServiceController extends ServiceController implements FileSe
         }
         catch(ValidationException $e ) {
             return $this->failValidationErrors($e->getValidationErrors(), $e->getHttpCode());
-        } 
-        catch(CreateException | UploadException | GenericException $e ) {
+        }
+        catch ( UploadException $e ) {
+            return $this->fail($e->getErrors(), $e->getMessage(), $e->getHttpCode());
+        }
+        catch(CreateException | GenericException $e ) {
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
         catch(ResourceNotFoundException $e) {
             return $this->failNotFound($e->getMessage(), $e->getHttpCode());
         }
 
-        
         return $this->respondCreated(['item_id' => $resourceID], $this->messages['upload_file']);
     }
 
