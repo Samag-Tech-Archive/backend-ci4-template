@@ -342,7 +342,7 @@ abstract class CRUDService implements Service {
         $data['rows'] = $this->model->getWithParams($options, $params, $this->joinFieldsFilters, $this->joinFieldsSort);
 
         // Restutuisce tutte le righe trovate non paginate
-        $data['total_rows'] = $this->model->getFoundRows();
+        $data['total_rows'] = (int)$this->model->getFoundRows();
         
         // Se è impostato l'identificativo setto data con i dati di rows
         if ( ! is_null($id) ) {
