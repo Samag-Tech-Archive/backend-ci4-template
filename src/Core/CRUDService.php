@@ -293,7 +293,7 @@ abstract class CRUDService implements Service {
             throw new CreateException();
         }
 
-        return $data;
+        return $this->model->find($id);
     }
 
     //--------------------------------------------------------------------------------------------------------
