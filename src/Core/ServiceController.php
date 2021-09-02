@@ -150,11 +150,11 @@ abstract class ServiceController extends Controller implements ServiceController
      */
     public function create() : Response {
 
-        $resourceId = 0;
+        $resource = null;
 
-        // Recupero l'identificativo della risorsa appena creata
+        // Recupero i dati della risorsa creata
         try {
-            $resourceId = $this->service->create($this->request);
+            $resource = $this->service->create($this->request);
         }
         catch(ValidationException $e) {
             return $this->failValidationErrors($e->getValidationErrors(), $e->getHttpCode());
@@ -163,7 +163,7 @@ abstract class ServiceController extends Controller implements ServiceController
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
-        return $this->respondCreated(['item_id'  =>  $resourceId]);
+        return $this->respondCreated($resource);
         
     }
 

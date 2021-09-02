@@ -23,9 +23,9 @@ interface Service {
      * @throws CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
      * @throws GenericException      Solleva quest'eccezione se c'è stato un errore generico
      * 
-     * @return int  Identificativo della risorsa appena creata
+     * @return array  Ritorna l'array contente tutti i dati inseriti
      */
-    public function create(IncomingRequest $request) : int; 
+    public function create(IncomingRequest $request) : array; 
 
     //--------------------------------------------------------------------------------------------------------
 

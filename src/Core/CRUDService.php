@@ -250,7 +250,7 @@ abstract class CRUDService implements Service {
      * {@inheritDoc}
      * 
      */
-    public function create(IncomingRequest $request) : int {
+    public function create(IncomingRequest $request) : array {
 
         // Eseguo il check della validazione
         $this->checkValidation($request,'insert');
@@ -293,7 +293,7 @@ abstract class CRUDService implements Service {
             throw new CreateException();
         }
 
-        return $id;
+        return $data;
     }
 
     //--------------------------------------------------------------------------------------------------------
