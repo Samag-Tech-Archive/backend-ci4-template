@@ -61,7 +61,7 @@ abstract class ServiceController extends Controller implements ServiceController
      * @var string
      * @access protected
      */
-    protected string $defaultService;
+    protected ?string $defaultService = null;
 
     /**
      * Lista di servizi esterni al default service
@@ -116,8 +116,9 @@ abstract class ServiceController extends Controller implements ServiceController
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
         // Servizio di default
-        $className = $this->getCalledClassName();
-        $this->defaultService = "App\Modules\\$className\Services\\$className";
+        if ( is_null($this->defaultService) ) {
+            die('Il servizio di default non è impostato');
+        }
         
         // Inizializzo il servizio da utilizzare
         $this->service = $this->makeService($this->currentUser->app_token ?? null);
