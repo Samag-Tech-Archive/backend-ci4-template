@@ -32,6 +32,17 @@ class DatabaseValidation {
 
 	//-------------------------------------------------------------------------------------------------------------
 
+
+	/**
+	 * Controllo dell'identificativo opzionale 
+	 * 
+	 */
+	public function db_exist_not_required($str, string $table) {
+		return is_null($str) || ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
+	}
+
+	//-------------------------------------------------------------------------------------------------------------
+
 	/**
 	 * Controlla la consistenza delle chiavi univoche
 	 * 
