@@ -298,14 +298,21 @@ class CRUDModel extends Model {
      */
     public function getWithParams(array $options, array $params = [], array $joinFieldsFilters = [], array $joinFieldsSort = [] ) {
 
-        // Aggiungo l'alias alla tabella
-        $this->from($this->table . ' ' . $this->alias, true);
+        // Identificativo tabella da inserire nella query
+        $identifyTable = $this->table;
+
+        // Se non è utilizzato il softDelete allora posso utilizzare l'alias
+        if ( ! $this->useSoftDeletes ) {
+            $this->from($this->table . ' ' . $this->alias, true);
+
+            $identifyTable = $this->alias;
+        }
 
         // Costruisco la query con le opzioni
         if ( ! empty($options['select'])) {
 
             // Per ogni campo della select se non esiste un alias, viene inserito quello della tabella
-            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $this->alias.'.'.$elem : $elem);
+            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $identifyTable.'.'.$elem : $elem);
 
             $this->select('SQL_CALC_FOUND_ROWS ' . implode(',', $options['select']), FALSE);
         }
@@ -347,7 +354,7 @@ class CRUDModel extends Model {
                 $this->orderBy($joinFieldsSort[$order], $verse);
             }
             else {
-                $this->orderBy($this->alias.'.'.$order, $verse);
+                $this->orderBy($identifyTable.'.'.$order, $verse);
             }
             
         }
@@ -375,7 +382,7 @@ class CRUDModel extends Model {
                  * - altrimenti viene aggiunto l'alias al campo
                  * 
                  */
-                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $this->alias.'.'.$field;
+                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $identifyTable.'.'.$field;
 
                 // Se non esiste nessuna indicazione oltre al campo viene applicata la clausola where
                 if ( is_null($clause) ) {
@@ -434,7 +441,7 @@ class CRUDModel extends Model {
         // Controllo se è settato l'identificativo univoco, nel caso restituisco un solo array
         if ( ! is_null($options['item_id']) ){
             
-            return $this->where($this->alias . '.id',$options['item_id'])->first();
+            return $this->where($identifyTable . '.id',$options['item_id'])->first();
             
         }
 
