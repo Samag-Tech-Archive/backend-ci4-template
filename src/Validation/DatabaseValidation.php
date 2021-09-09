@@ -75,4 +75,32 @@ class DatabaseValidation {
 
 	}
 
+	//-------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Funzione is_unique di CI4 modificata per ignorare i dati cancellati
+	 * 
+	 */
+	public function is_unique_with_deleted(string $str = null, string $field, array $data): bool {
+
+		// Recupero i dati 
+		[$field, $ignoreField, $ignoreValue] = array_pad(explode(',', $field), 3, null);
+
+		sscanf($field, '%[^.].%[^.]', $table, $field);
+
+		$row = $this->db->table($table)
+				  ->select('1')
+				  ->where($field, $str)
+				  ->where('deleted_date', null)
+				  ->limit(1);
+
+		if (! empty($ignoreField) && ! empty($ignoreValue) && ! preg_match('/^\{(\w+)\}$/', $ignoreValue)) {
+			$row = $row->where("{$ignoreField} !=", $ignoreValue);
+		}
+
+		return (bool) ($row->get()->getRow() === null);
+	}
+
+	//-------------------------------------------------------------------------------------------------------------
+
 }
