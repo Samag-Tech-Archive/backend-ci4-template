@@ -5,43 +5,43 @@ namespace SamagTech\Crud\Core;
 use CodeIgniter\Model;
 
 /**
- * Estensione del modello di CI4 
+ * Estensione del modello di CI4
  * con funzionalità per il CRUD
- * 
- * 
+ *
+ *
  */
 class CRUDModel extends Model {
 
     /**
      * Gruppo database di default
-     * 
-     * @var string 
+     *
+     * @var string
      * Default 'default'
      * @access protected
      */
     protected $DBGroup = 'default';
-    
+
     /**
      * Tabella su cui agisce il modello
-     * 
+     *
      * @var string
-     * Default '' 
+     * Default ''
      * @access protected
      */
     protected $table      = '';
 
     /**
      * Alias tabella su cui agisce il modello
-     * 
+     *
      * @var string
-     * Default '' 
+     * Default ''
      * @access protected
      */
     protected $alias      = '';
 
     /**
      * Chiave primaria della tabella
-     * 
+     *
      * @var string
      * Default 'id'
      * @access protected
@@ -50,7 +50,7 @@ class CRUDModel extends Model {
 
     /**
      * Tipo di ritorno delle query
-     * 
+     *
      * @var string
      * Default 'array'
      * Possibili valori [array, object]
@@ -62,7 +62,7 @@ class CRUDModel extends Model {
      * Flag per falsa cancellazione.
      * Se settato a true non cancella la riga
      * ma imposta la data di cancellazione.
-     * 
+     *
      * @var bool
      * Default 'false'
      * @access protected
@@ -71,7 +71,7 @@ class CRUDModel extends Model {
 
     /**
      * Campi importanti per l'inserimento e la modifica
-     * 
+     *
      * @var array
      * Default []
      * @access protected
@@ -80,35 +80,35 @@ class CRUDModel extends Model {
 
     /**
      * Flag per l'uso dei timestamp
-     * 
+     *
      * @var bool
      * Default true
-     * @access protected 
+     * @access protected
      */
     protected $useTimestamps = false;
 
     /**
      * Colonna per la data di creazione della riga
-     * 
+     *
      * @var string
      * Default 'created_date'
      * @access protected
      */
     protected $createdField  = 'created_date';
-    
+
     /**
      * Colonna per la data di modifica della riga
-     * 
+     *
      * @var string
      * Default 'created_date'
      * @access protected
      */
     protected $updatedField  = 'updated_date';
-    
+
     /**
      * Colonna per la data di cancellazione della riga,
      * funziona solo se il useSoftDeletes è abilitato
-     * 
+     *
      * @var string
      * Default 'created_date'
      * @access protected
@@ -117,8 +117,8 @@ class CRUDModel extends Model {
 
     /**
      * Identificativo corrente assegnato
-     * 
-     * @var integer 
+     *
+     * @var integer
      * Default NULL
      * @access private
      */
@@ -129,16 +129,16 @@ class CRUDModel extends Model {
      *
      *  @var bool
      *  Default FALSE
-     *  @access private 
+     *  @access private
      */
     private bool $excludeDeleted = false;
 
     /**
      * Flag che indica se il modello deve tener conto della colonna
      * created_by
-     * 
+     *
      * @access public
-     * 
+     *
      * @var bool
      */
     public bool $useCreatedBy = false;
@@ -146,9 +146,9 @@ class CRUDModel extends Model {
     /**
      * Flag che indica se il modello deve tener conto della colonna
      * updated_by
-     * 
+     *
      * @access public
-     * 
+     *
      * @var bool
      */
     public bool $useUpdatedBy = false;
@@ -157,7 +157,7 @@ class CRUDModel extends Model {
 
     /**
      * Costruttore
-     * 
+     *
      */
     public function __construct() {
         parent::__construct();
@@ -165,7 +165,7 @@ class CRUDModel extends Model {
         // Controllo che la tabella sia settata
         if ( empty($this->table) || trim($this->table) == '' ) {
             die('La tabella deve essere impostata');
-        } 
+        }
 
         // Controllo che l'alias sia settato
         if ( empty($this->alias) || trim($this->alias) == '') {
@@ -181,7 +181,7 @@ class CRUDModel extends Model {
 
     /**
      * Restituisce la tabella.
-     * 
+     *
      * @return string
      */
     public function getTable() : string { return $this->table; }
@@ -190,7 +190,7 @@ class CRUDModel extends Model {
 
     /**
      * Funzione per settare l'identificativo
-     * 
+     *
      * @param integer $id   Identificativo
      * @return self
      */
@@ -203,7 +203,7 @@ class CRUDModel extends Model {
 
     /**
      * Funzione per la restituizione dell'identificativo corrente
-     * 
+     *
      * @return int
      */
     public function getId() : int {
@@ -215,50 +215,50 @@ class CRUDModel extends Model {
     /**
      * Funzione che restituisce un record di una risorsa
      * in base all'identificativo
-     * 
+     *
      * @param array $where  Array con le clausole where (Default [])
-     * 
+     *
      * @return mixed I dati se l'identificativo è impostato, NULL se non ci sono dati
      */
     public function get ( array $where = []) {
-                
+
         // Se l'identificativo non è nullo allora cerco la risorsa
         if ( ! is_null($this->id)) {
             return $this->find($this->id);
-           
+
         }
-            
+
         // Se il flag è false recupero tutte le righe
         if ( ! $this->excludeDeleted ) {
             $this->withDeleted();
         }
-        
+
         return $this->where($where)->findAll();
     }
 
     //----------------------------------------------------------------------
-    
+
     /**
      * Funzione che aggiunge le clausole per includere/escludere gli elementi cancellati
-     * 
+     *
      * @params bool    $exclude    True esclude gli elementi cancellati, False i cancellati
-     * 
+     *
      * @return self
      */
     public function excludeDeleted( bool $exclude = true ) : self {
         $this->excludeDeleted = $exclude;
         return $this;
     }
-    
+
     //----------------------------------------------------------------------
 
     /**
-     * Funzione che restituisce un singolo elemente in base 
+     * Funzione che restituisce un singolo elemente in base
      * alle clausole where
     //----------------------------------------------------------------------
-     * 
+     *
      * @params array $where Array con le clausole where ( Default [])
-     * 
+     *
      * @return mixed
      */
     public function row ( array $where = [] ) {
@@ -270,7 +270,7 @@ class CRUDModel extends Model {
     /**
      * Funzione che restituisce TRUE se la riga esiste, FALSE altrimenti
      * in base all'identificativo.
-     * 
+     *
      * @param int $id   Identificativo da cercare
      * @return bool
      */
@@ -279,21 +279,21 @@ class CRUDModel extends Model {
         if ( ! isset($id) ) {
             $id = $this->id;
         }
-        
+
         return ! is_null($this->find($id));
     }
 
     //---------------------------------------------------------------------
 
     /**
-     * Funzione che restituisce la lista dei dati 
+     * Funzione che restituisce la lista dei dati
      * con join, paginazione ed ordinamento.
-     * 
+     *
      * @param   array   $options            Array contenente le opzioni settate nel controller per il listaggio(where,join,select ecc...)
      * @param   array   $params             Array con i paramentri per la query da eseguire
      * @param   array   $joinFieldsFilters  Array contenente i filtri sui join, traduce il campo in get nella clausola da applicare
      * @param   array   $joinFieldsSort     Array contenente i l'ordinamento sui join, traduce il campo in get nella clausola da applicare
-     * 
+     *
      * @return array
      */
     public function getWithParams(array $options, array $params = [], array $joinFieldsFilters = [], array $joinFieldsSort = [] ) {
@@ -308,7 +308,7 @@ class CRUDModel extends Model {
         }
         else {
             // Select per calcolare anche il numero di righe totali
-            $this->select('SQL_CALC_FOUND_ROWS *', FALSE);   
+            $this->select('SQL_CALC_FOUND_ROWS *', FALSE);
         }
 
         // Opzione per le clausole where non mutabili
@@ -330,7 +330,7 @@ class CRUDModel extends Model {
 
         // L'orientamento è dato dal [Campo][Divisore Campo-Ordinamento '.' ][Verso ordinamento]
         foreach( $options['sort_by'] as $sortBy) {
-            
+
             // Separo il campo dalla clausola
             list($order,$verse) = explode(':', $sortBy);
 
@@ -338,7 +338,7 @@ class CRUDModel extends Model {
              * Se il campo è presente nei campi dei join per l'ordinamento
              * allora decodifico il campo, altrimenti utilizzo l'alias
              * della tabella del modello.
-             * 
+             *
              */
             if ( isset($joinFieldsSort[$order])) {
                 $this->orderBy($joinFieldsSort[$order], $verse);
@@ -346,31 +346,31 @@ class CRUDModel extends Model {
             else {
                 $this->orderBy($this->table.'.'.$order, $verse);
             }
-            
+
         }
 
         // Creo le clausole in base ai paramentri delle query
         if ( ! empty($params)) {
             foreach ( $params as $param => $value ) {
-                
-                // Inizializzo la clausola di default 
+
+                // Inizializzo la clausola di default
                 $clause = null;
-                
-                // Controllo se nella stringa ci sono i due : 
+
+                // Controllo se nella stringa ci sono i due :
                 if ( strpos($param, ':') === false ) {
                     $field = $param;
                 }
                 else {
                     // Splitto i parametri GET identificare che tipo di clausola applicare
                     list($field,$clause) = explode(':',$param);
-                } 
+                }
 
                 /**
                  * Controllo se il filtro deve essere applicato su un campo di una tabella joinata
-                 * 
+                 *
                  * - Se appartiene ad una tabella joinata allora viene codificato
                  * - altrimenti viene aggiunto l'alias al campo
-                 * 
+                 *
                  */
                 $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $this->table.'.'.$field;
 
@@ -383,13 +383,13 @@ class CRUDModel extends Model {
 
                     /**
                      * Se esiste un indicazione ulteriore allora utilizzo la clausola adatta
-                     * 
+                     *
                      * - like aggiunge la clausola like con match %valore%
                      * - gte  aggiunge la clausola con >=
                      * - gt   aggiunge la clausola con >
                      * - lte  aggiunge la clausola con <=
                      * - lt   aggiunge la clausola con <
-                     * 
+                     *
                      */
                     switch ( $clause ) {
                         case 'like' :
@@ -413,6 +413,12 @@ class CRUDModel extends Model {
                         case 'bool_not' :
                             $this->where($trueField . ' IS NOT '. $value);
                         break;
+                        case 'not_in' :
+                            $this->whereNotIn($trueField, explode(',', $value));
+                            break;
+                        case 'in' :
+                            $this->whereIn($trueField, explode(',', $value));
+                        break;
                         case 'null' :
                             if ( $value == 'true' ) {
                                 $this->where($trueField, null);
@@ -426,37 +432,37 @@ class CRUDModel extends Model {
             }
         }
 
-        
+
 
         // Controllo se è settato l'identificativo univoco, nel caso restituisco un solo array
         if ( ! is_null($options['item_id']) ){
-            
+
             return $this->where($this->table . '.id',$options['item_id'])->first();
-            
+
         }
 
         // Se il flag della paginazione è attivo restituisco tutti i dati
         if ( $options['no_pagination'] ) {
             return $this->findAll();
-        } 
+        }
 
         // Recupero i dati con paginazione
         return $this->findAll($options['limit'],  $options['limit'] * ($options['offset'] > 0 ? $options['offset'] - 1 : 0));
-        
 
-    } 
+
+    }
 
     //---------------------------------------------------------------------
-    
+
 	/**
-	 * 
+	 *
      * Ritorna il numero di righe trovate dopo SQL_CALC_FOUND_ROWS ( durante la paginazione)
 	 *
 	 * @return integer
 	 */
 	public function getFoundRows() {
 
-        $db = \Config\Database::connect(); 
+        $db = \Config\Database::connect();
 
 		return $db->query('SELECT FOUND_ROWS() as tot_rows')->getRow()->tot_rows;
 	}
