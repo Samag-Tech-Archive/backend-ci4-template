@@ -6,7 +6,7 @@ class DatabaseValidation {
 
 	/**
 	 * Connessione al database
-	 * 
+	 *
 	 */
 	private $db;
 
@@ -14,7 +14,7 @@ class DatabaseValidation {
 
 	/**
 	 * Costruttore.
-	 * 
+	 *
 	 */
 	public function __construct() {
 		$this->db = \Config\Database::connect();
@@ -23,8 +23,8 @@ class DatabaseValidation {
 	//-------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Controllo se esiste l'identificativo 
-	 * 
+	 * Controllo se esiste l'identificativo
+	 *
 	 */
 	public function db_exist($str, string $table) {
 		return ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
@@ -34,8 +34,8 @@ class DatabaseValidation {
 
 
 	/**
-	 * Controllo dell'identificativo opzionale 
-	 * 
+	 * Controllo dell'identificativo opzionale
+	 *
 	 */
 	public function db_exist_not_required($str, string $table) {
 		return is_null($str) || ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
@@ -45,11 +45,11 @@ class DatabaseValidation {
 
 	/**
 	 * Controlla la consistenza delle chiavi univoche
-	 * 
+	 *
 	 * Ex: db_check_unique_key[TABELLA,CAMPO1,CAMPO2,....,CAMPON]
 	 */
 	public function db_check_unique_key($str, string $fields, $data) {
-		
+
 		$fields = explode(',', $fields);
 
 		// Recupero la tabella
@@ -63,7 +63,7 @@ class DatabaseValidation {
 
 		// Controllo se i campi esistono, se esistono li inserisco nella clausola where
 		foreach ( $fields as $field ) {
-			
+
 			if ( ! isset($data[$field]) ) {
 				return false;
 			}
@@ -79,11 +79,11 @@ class DatabaseValidation {
 
 	/**
 	 * Funzione is_unique di CI4 modificata per ignorare i dati cancellati
-	 * 
+	 *
 	 */
 	public function is_unique_with_deleted(string $str = null, string $field, array $data): bool {
 
-		// Recupero i dati 
+		// Recupero i dati
 		[$field, $ignoreField, $ignoreValue] = array_pad(explode(',', $field), 3, null);
 
 		sscanf($field, '%[^.].%[^.]', $table, $field);

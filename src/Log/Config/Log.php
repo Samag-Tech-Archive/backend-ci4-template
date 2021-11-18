@@ -6,20 +6,20 @@ namespace SamagTech\Log\Config;
  *
  * @package Log
  * @author  Alessandro Marotta <alessandro.marotta@samag.tech>
- * 
+ *
  */
 class Log extends \CodeIgniter\Config\BaseConfig {
 
     /**
-     * Nome della tabella 
-     * 
+     * Nome della tabella
+     *
      * @var string
      */
     public string $table = "logs";
 
     /**
      * Tipologia delle operazioni da loggare
-     * 
+     *
      * @var array
      */
     public array  $typeLogs = [
@@ -33,11 +33,11 @@ class Log extends \CodeIgniter\Config\BaseConfig {
 
     /**
      * Tipo di log considerato di update.
-     * 
-     * Indica, nel caso di update e che non sollevi eccezioni, che i 
+     *
+     * Indica, nel caso di update e che non sollevi eccezioni, che i
      * nuovi dati devono essere settati.
-     * 
-     * @var array 
+     *
+     * @var array
      */
     public $updatedType = [
         'update'

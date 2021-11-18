@@ -13,7 +13,7 @@ use SamagTech\Log\Libraries\Log;
 
 /**
  * Classe astratta che implementa i servizi CRUD di default
- * 
+ *
  * @implements Service
  * @author Alessandro Marotta
  */
@@ -21,8 +21,8 @@ abstract class CRUDService implements Service {
 
     /**
      * Array con gli helpers da precaricare
-     * 
-     * 
+     *
+     *
      * @var array
      * @access protected
      */
@@ -34,23 +34,23 @@ abstract class CRUDService implements Service {
 
     /**
      * Array contenente le regole di validazioni.
-     * 
+     *
      * L'array deve contenere 3 chiavi principali : 'generic', 'insert', 'update'
-     * 
+     *
      * 'generic' → Verrà utilizzata sia in create che update
      * 'insert' → Verrà utilizzata solo in create
      * 'update' → Verrà utilizzata solo in update
-     * 
-     * @var array 
-     * @access protected 
+     *
+     * @var array
+     * @access protected
      */
     protected array $validationsRules = [];
 
     /**
      * Array contenente i messaggi di validazioni custom
-     * 
+     *
      * L'array deve contenere TIPO_VALIDAZIONE -> MESSAGGIO
-     * 
+     *
      * @var array
      * @access protected
      */
@@ -58,16 +58,16 @@ abstract class CRUDService implements Service {
 
     /**
      * Stringa contentente il nome del modello.
-     * 
+     *
      * @var string
      * @access protected
      * Default ''
      */
     protected ?string $modelName = null;
-    
+
     /**
      * Modello principale
-     * 
+     *
      * @var CRUDModel
      * @access protected
      */
@@ -75,7 +75,7 @@ abstract class CRUDService implements Service {
 
     /**
      * Lista contentente la clausola per la select
-     * 
+     *
      * @var array
      * @access protected
      * Default []
@@ -84,7 +84,7 @@ abstract class CRUDService implements Service {
 
     /**
      * Lista contenente le clausole per i join
-     * 
+     *
      * @var array
      * @access protected
      * Default null
@@ -93,7 +93,7 @@ abstract class CRUDService implements Service {
 
     /**
      * Lista contenente le clausole where di base
-     * 
+     *
      * @var array
      * @access protected
      * Default null
@@ -102,8 +102,8 @@ abstract class CRUDService implements Service {
 
     /**
      * Lista contenente le clausole group by di base
-     * 
-     * @var array 
+     *
+     * @var array
      * @access protected
      * Default null
      */
@@ -111,9 +111,9 @@ abstract class CRUDService implements Service {
 
     /**
      * Limite di risorse da recuperare per pagina.
-     * 
+     *
      * Se è settato il flag noPagination a true non viene considerato.
-     * 
+     *
      * @var int
      * @access protected
      * Default 50
@@ -122,7 +122,7 @@ abstract class CRUDService implements Service {
 
     /**
      * Flag per attivare/disabilitare la paginazione. ( Utile principalmente per i report)
-     * 
+     *
      * @var bool
      * @access protected
      * Default FALSE
@@ -131,7 +131,7 @@ abstract class CRUDService implements Service {
 
     /**
      * Clausola per l'ordinamento di default
-     * 
+     *
      * @var array
      * @access protected
      * Default 'id'
@@ -141,12 +141,12 @@ abstract class CRUDService implements Service {
     /**
      * Mappa che deve contentenere la codifica dei campi che possono servire
      * per ordinamento e filtri nelle tabelle joinate
-     * 
+     *
      * L'array deve essere formato con  FILTRO → CAMPO_CON_ALIAS
-     * 
-     * Es. employee_name => E.name dove E è l'alias della tabella 
-     * 
-     * @var array 
+     *
+     * Es. employee_name => E.name dove E è l'alias della tabella
+     *
+     * @var array
      * @access protected
      * Default []
      */
@@ -155,27 +155,27 @@ abstract class CRUDService implements Service {
     /**
      * Mappa che deve contentenere la codifica dei campi che possono servire
      * per ordinamento nelle tabelle joinate
-     * 
+     *
      * L'array deve essere formato con  ORDINAMENTO → CAMPO_CON_ALIAS
-     * 
-     * Es. employee_name => E.name dove E è l'alias della tabella 
-     * 
-     * @var array 
+     *
+     * Es. employee_name => E.name dove E è l'alias della tabella
+     *
+     * @var array
      * @access protected
      * Default []
      */
     protected array $joinFieldsSort = [];
 
     /**
-     * Istanza del database 
-     * 
-     * @var BaseConnection 
+     * Istanza del database
+     *
+     * @var BaseConnection
      */
-    protected $db; 
+    protected $db;
 
     /**
      * Configurazione Applicazione
-     * 
+     *
      * @var Application
      * @access protected
      */
@@ -183,35 +183,35 @@ abstract class CRUDService implements Service {
 
     /**
      * Dati utente loggato
-     * 
+     *
      * @var object
-     * @access protected 
+     * @access protected
      */
     protected ?object $currentUser;
 
     /**
      * Libreria per il logger
-     * 
+     *
      * @var Log
-     * @access protected 
+     * @access protected
      */
     protected Log $logger;
-    
+
     /**
      * Flag per l'attivazione del logger
      * nel singolo CRUD
-     * 
+     *
      * @var bool
-     * @access protected 
+     * @access protected
      */
     protected bool $activeCrudLogger = true;
-    
+
 
     //---------------------------------------------------------------------------------
 
     /**
-     *  Costruttore. 
-     * 
+     *  Costruttore.
+     *
      */
     public function __construct() {
 
@@ -224,11 +224,11 @@ abstract class CRUDService implements Service {
         if ( ! is_array($this->validationsRules) ) {
             die ('Le regole di validazione devono essere contenute in un array');
         }
-        
+
         // Se il modello non è settato allora setto il modello di default
         if ( is_null($this->modelName) ) {
             die('Il modello non è settato');
-        } 
+        }
         else {
             $this->model = model($this->modelName);
         }
@@ -241,14 +241,14 @@ abstract class CRUDService implements Service {
 
         // Inizializzo la libreria di log
         $this->logger = new Log($this->model->getTable(), $this, CurrentUser::getIstance() ?? null);
-        
+
     }
 
     //---------------------------------------------------------------------------------
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function create(IncomingRequest $request) : array {
 
@@ -272,7 +272,7 @@ abstract class CRUDService implements Service {
             $data = array_merge($data, [
                 'created_by' => $this->currentUser->id,
             ]);
-        } 
+        }
 
         // Inserisco i dati
         $id = $this->model->insert($data);
@@ -281,7 +281,7 @@ abstract class CRUDService implements Service {
 
         // Se esistono dati extra allora eseguo la callback per gestirli
         $this->insertCallback($extraInsert);
-        
+
         // Callback post-inserimento
         $this->postInsertCallback($id,$data,$extraInsert);
 
@@ -300,7 +300,7 @@ abstract class CRUDService implements Service {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function retrieve( IncomingRequest $request, int $id = null) : array {
 
@@ -309,7 +309,7 @@ abstract class CRUDService implements Service {
             throw new ResourceNotFoundException();
         }
 
-        // Recupero i parametri da eseguire 
+        // Recupero i parametri da eseguire
         $params = $request->getGet();
 
         // Creo l'array con la configurazione per la query
@@ -319,8 +319,8 @@ abstract class CRUDService implements Service {
             'join'      =>  $this->retrieveJoin,
             'group_by'  =>  $this->retrieveGroupBy,
             'limit'     =>  ! isset($params['for_page']) ? $this->retriveLimit : $params['for_page'],
-            'offset'    =>  ! isset($params['page']) ? 1 : $params['page'], 
-            'sort_by'   =>  ! isset($params['sort_by']) ? $this->retrieveSortBy : [$params['sort_by']], 
+            'offset'    =>  ! isset($params['page']) ? 1 : $params['page'],
+            'sort_by'   =>  ! isset($params['sort_by']) ? $this->retrieveSortBy : [$params['sort_by']],
             'no_pagination' => $this->noPagination,
             'item_id'   =>  $id
         ];
@@ -332,7 +332,7 @@ abstract class CRUDService implements Service {
         $data = [
             'page'          => $options['offset'],
             'total_rows'    => 0,
-            'rows'          => [] 
+            'rows'          => []
         ];
 
         // Aggiunge dati alla query e modifica le opzioni
@@ -343,7 +343,7 @@ abstract class CRUDService implements Service {
 
         // Restutuisce tutte le righe trovate non paginate
         $data['total_rows'] = (int)$this->model->getFoundRows();
-        
+
         // Se è impostato l'identificativo setto data con i dati di rows
         if ( ! is_null($id) ) {
             $data = $data['rows'];
@@ -362,7 +362,7 @@ abstract class CRUDService implements Service {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function update(IncomingRequest $request, int $id) : bool {
 
@@ -376,7 +376,7 @@ abstract class CRUDService implements Service {
 
         // Recupero i dati dalla richiesta
         $data = $request->getJSON(TRUE);
-        
+
         // Callback pre-modifica
         $data = $this->preUpdateCallback($id, $data);
 
@@ -391,7 +391,7 @@ abstract class CRUDService implements Service {
             $data = array_merge($data, [
                 'updated_by' => $this->currentUser->id,
             ]);
-        } 
+        }
 
         $data['updated_date'] = Time::now();
 
@@ -403,7 +403,7 @@ abstract class CRUDService implements Service {
 
         // Se esistono dati extra allora eseguo la callback per gestirli
         $this->updateCallback($id,$extraUpdate);
-        
+
         // Callback post-modifica
         $this->postUpdateCallback($id, $data, $extraUpdate);
 
@@ -421,10 +421,10 @@ abstract class CRUDService implements Service {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function delete(IncomingRequest $request, int $id) : bool {
-        
+
         // Controllo se la risorsa esiste
         if  ( is_null($oldData = $this->model->find($id)) ) {
             throw new ResourceNotFoundException();
@@ -441,7 +441,7 @@ abstract class CRUDService implements Service {
 
         // Check per il logger
         $this->logger->create('delete', $id, $oldData);
-        
+
         // Callback per ulteriori azioni di cancellazione
         $this->deleteCallback($id, $oldData);
 
@@ -462,10 +462,10 @@ abstract class CRUDService implements Service {
 
     /**
      * Funzione per il recupero di dati extra in caso di create/update
-     * 
+     *
      * @param array $data   Dati delle richiesta
-     * 
-     * @return array 
+     *
+     * @return array
      */
     public function getExtraData(array &$data ) {
 
@@ -488,21 +488,21 @@ abstract class CRUDService implements Service {
 
     /**
      * Funzione che gestisce la validazione sia in insert che in update.
-     * 
+     *
      * @param string $action    Azione che si sta compiendo Default ('insert')
-     * 
+     *
      * @return void
      */
     protected function checkValidation(IncomingRequest $request, string $action = 'insert') {
 
-        // Recupero i dati 
+        // Recupero i dati
         $data = $request->getJSON(TRUE);
 
         // Recupero le regole di validazioni generiche
-        $generics = isset($this->validationsRules['generic']) ? $this->validationsRules['generic'] : []; 
+        $generics = isset($this->validationsRules['generic']) ? $this->validationsRules['generic'] : [];
 
         // Eseguo il merge delle regole di validazioni
-        $rules = isset($this->validationsRules[$action]) 
+        $rules = isset($this->validationsRules[$action])
             ? $generics + $this->validationsRules[$action]
             : $generics;
 
@@ -510,10 +510,10 @@ abstract class CRUDService implements Service {
         if ( ! empty($rules)) {
 
             $validation = \Config\Services::validation();
-            
+
             // Vengono settate le regole di validazione, con i messaggi di default
             $validation->setRules($rules,$this->validationsCustomMessage);
-            
+
             // Lancio la validazione, se fallisce lancio un eccezione
             if ( ! $validation->run($data)) {
                 throw new ValidationException($validation->getErrors());
@@ -525,173 +525,173 @@ abstract class CRUDService implements Service {
 
     /**
      * Callback per la gestione dell'inserimento dei dati extra
-     * 
+     *
      * @param array $data   Array con i dati extra da inserire
-     * 
+     *
      * @return void
-     * 
+     *
      * @deprecated  utilizzare postInsertCallback
      */
-    protected function insertCallback( array $data ) : void  {} 
+    protected function insertCallback( array $data ) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
 
     /**
      * Callback eseguita pre inserimento dei dati
-     * 
+     *
      * @param array $data   Array con i dati da inserire
      * lla riga inserita
-     * @param array $data       Array con i dati 
+     * @param array $data       Array con i dati
      * @return array
      */
     protected function preInsertCallback( array $data ) : array  {
         return $data;
-    } 
+    }
 
     //----------------------------------------------------------------------------------------------------
 
 
     /**
      * Callback eseguita post inserimento dei dati
-     * 
+     *
      * @param int   $id         Identificativo della riga inserita
      * @param array $data       Array con i dati da inserire
      * @param array $extraData  Array che contiene i dati extra se ci sono( Default = [])
-     * 
+     *
      * @return void
      */
-    protected function postInsertCallback( int $id, array $data, array $extraData = []) : void  {} 
+    protected function postInsertCallback( int $id, array $data, array $extraData = []) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
 
     /**
      * Callback eseguita pre modifica dei dati
-     * 
+     *
      * @param int   $id     Identificativo della riga da modificare
      * @param array $data   Array con i dati per la modifica
-     * 
+     *
      * @return array
      */
     protected function preUpdateCallback( int $id, array $data ) : array  {
         return $data;
-    } 
+    }
 
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback eseguita post modifica dei dati
-     * 
+     *
      * @param int   $id         Identificativo della riga inserita
      * @param array $data       Array con i dati extra da inserire
      * @param array $extraData  Array che contiene i dati extra se ci sono( Default = [])
-     * 
+     *
      * @return void
      */
-    protected function postUpdateCallback( int $id, array $data, array $extraData = []) : void  {} 
+    protected function postUpdateCallback( int $id, array $data, array $extraData = []) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback per la gestione delle modifiche dei dati extra
-     * 
+     *
      * @param array $id     Identificativo della risorsa modificata
      * @param array $data   Array con i dati extra da inserire
-     * 
+     *
      * @return void
-     * 
+     *
      * @deprecated  utilizzare postUpdateCallback
      */
-    protected function updateCallback( int $id, array $data ) : void  {} 
+    protected function updateCallback( int $id, array $data ) : void  {}
 
     //---------------------------------------------------------------------------------------------------
-    
+
     /**
      * Callback eseguita pre cancellazione dei dati
-     * 
+     *
      * @param int   $id     Identificativo della riga da cancellare
      * @param array $data   Array con i dati per della riga da cancellare
-     * 
+     *
      * @return void
      */
-    protected function preDeleteCallback( int $id, array $data ) : void  {} 
+    protected function preDeleteCallback( int $id, array $data ) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback per la gestione delle modifiche dei dati extra
-     * 
+     *
      * @param int   $id     Identificativo risorsa cancellata
      * @param array $data   Dati della risorsa cancellata
-     * 
+     *
      * @return void
-     * 
+     *
      * @deprecated  utilizzare postDeleteCallback
      */
     protected function deleteCallback( int $id, array $data ) : void  {}
-    
+
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback eseguita post cancellazione dei dati
-     * 
+     *
      * @param int   $id     Identificativo risorsa cancellata
      * @param array $data   Dati della risorsa cancellata
-     * 
+     *
      * @return void
      */
     protected function postDeleteCallback( int $id, array $data ) : void  {}
 
     //---------------------------------------------------------------------------------------------------
-    
+
     /**
      * Callback per effettuare aggiunte o modifiche alle query
-     * 
+     *
      * @param array $options    Array con le opzioni per le query
      * @param array &$params    Array contentente i parametri per la lista
-     * 
+     *
      * @return array    Opzioni modificate
      */
     protected function preRetrieveCallback(array $options, array &$params ) : array {
         return $options;
-    } 
+    }
 
     //---------------------------------------------------------------------------------------------------
 
     /**
      * Callback per la gestione della lista post-query
-     * 
+     *
      * @param array $data               Lista dei dati estratti
      * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
-     * 
+     *
      * @return array
-     * 
+     *
      * @deprecated  utilizzare postRetrieveCallback
      */
     protected function retrieveCallback( array $data, bool $isSingleResource = false ) : array  {
         return $data;
-    } 
+    }
 
     //---------------------------------------------------------------------------------------------------
 
     /**
      * Callback per la gestione della lista post-query
-     * 
+     *
      * @param array $data               Lista dei dati estratti
      * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
-     * 
+     *
      * @return array
      */
     protected function postRetrieveCallback( array $data, bool $isSingleResource = false ) : array  {
         return $data;
-    } 
+    }
 
     //---------------------------------------------------------------------------------------------------
 
     /**
      * Restituisce TRUE se il logger è attiva, FALSE altrimenti
-     * 
+     *
      * @return bool
      */
     public function isActiveLogger() : bool {

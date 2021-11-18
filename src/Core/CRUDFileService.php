@@ -12,7 +12,7 @@ use \ZipArchive;
 
 /**
  * Classe astratta che implementa i servizi CRUD di default
- * 
+ *
  * @implements Service
  * @author Alessandro Marotta
  */
@@ -20,7 +20,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Stringa contentente il nome del modello
-     * 
+     *
      * @var string
      * @access protected
      */
@@ -28,15 +28,15 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Modello per la gestione dei file
-     * 
+     *
      * @var CRUDModel
-     * @access protected 
+     * @access protected
      */
     protected ?CRUDModel $fileModel = null;
 
     /**
      * Array di validazione per l'upload dei file.
-     * 
+     *
      * @var array
      * @access protected
      */
@@ -45,7 +45,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
     /**
      * Array contententi i messaggi custom di validazione
      * in fase di upload.
-     * 
+     *
      * @var array
      * @access protected
      */
@@ -53,7 +53,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Path per l'upload
-     * 
+     *
      * @var string
      * @access protected
      * Default 'null'
@@ -62,7 +62,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Array contenente il nome dei file che hanno subito un problema durante l'upload
-     * 
+     *
      * @var string[]
      * @access protected
      */
@@ -72,7 +72,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Costruttore.
-     * 
+     *
      */
     public function __construct() {
         parent::__construct();
@@ -93,7 +93,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function uploads(IncomingRequest $request, ?int $resourceID = null): bool {
 
@@ -137,12 +137,12 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         // Inserisco i dati nel db
         if ( $this->fileModel->insertBatch($toInsert) == false ) {
             throw new CreateException();
-        } 
+        }
 
         if ( $this->hasUploadErrors() ) {
             throw new UploadException($this->errors, 'Alcuni file non sono stati caricati');
         }
-        
+
         return true;
 
     }
@@ -151,7 +151,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function download(IncomingRequest $request, int $fileID): array {
 
@@ -161,7 +161,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         if ( is_null($file = $this->fileModel->getFileByID($fileID)) ) {
             throw new ResourceNotFoundException('Il file non esiste');
         }
-        
+
         return $this->getDownloadData($file);
     }
 
@@ -169,13 +169,13 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function deleteFile(IncomingRequest $request, int $fileID): bool {
 
         // Dati del file
         $file = null;
-        
+
         // Controllo se il file esiste
         if  ( is_null($file = $this->fileModel->getFileByID($fileID)) ) {
             throw new ResourceNotFoundException('Il file non esiste');
@@ -187,13 +187,13 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
         // Cancello la riga
         $deleted = $this->fileModel->delete($fileID) != false;
-        
-        if ( $deleted ) { 
-            
+
+        if ( $deleted ) {
+
             // Cancello il file
             if ( ! unlink($this->pathUpload.$file['hash_name']) ) {
                 throw new DeleteException('Errore durante la cancellazione del file');
-            } 
+            }
         }
 
         // Crea il logger
@@ -210,13 +210,13 @@ abstract class CRUDFileService extends CRUDService implements FileService {
     }
 
     //---------------------------------------------------------------------------------
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function downloadAllByResource(IncomingRequest $request, int $resourceID ) :  string {
-        
+
         $resource = null;
 
         // Controllo se è installato il plugin di zip
@@ -227,7 +227,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
             throw new ResourceNotFoundException('La risorsa non esiste');
         }
 
-        // Recupero il nome da dare allo zip 
+        // Recupero il nome da dare allo zip
         $zipname = $request->getGet('zipname') ?? null;
 
         // Controllo se esiste la cartella temporanea
@@ -260,25 +260,25 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         $zip = $this->addFileToZip($zip, $files);
 
         $zip->close();
-        
+
         return $zipname;
     }
 
     //---------------------------------------------------------------------------------
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      */
     public function downloadFiles(IncomingRequest $request) : string {
 
         // Controllo se è installato il plugin di zip
         if ( ! \extension_loaded('zip') ) throw new DownloadException('L\'estensione Zip non è installata');
 
-        // Recupero la lista di file 
+        // Recupero la lista di file
         $fileIDs = $request->getGet('files');
 
-        // Recupero il nome da dare allo zip 
+        // Recupero il nome da dare allo zip
         $zipname = $request->getGet('zipname') ?? null;
 
         // Controllo se esiste la cartella temporanea
@@ -309,17 +309,17 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
         // Aggiunge i file all'archivio
         $zip = $this->addFileToZip($zip, $files);
-        
+
         $zip->close();
-        
+
         return $zipname;
     }
-    
+
     //---------------------------------------------------------------------------------
 
     /**
      * Funzione che gestisce la validazione per i file
-     * 
+     *
      * @access protected
      * @param IncomingRequest $request  Richiesta del client
      * @throws  ValidationException Solleva un eccezione in caso di fallimento della validazione
@@ -331,16 +331,16 @@ abstract class CRUDFileService extends CRUDService implements FileService {
         if ( isset($this->validationsUploadsRules) && ! empty($this->validationsUploadsRules) ) {
 
             /**
-             * Istanzio la libreria di validazione 
+             * Istanzio la libreria di validazione
              * ed eseguo la validazione
-             * 
+             *
              */
             $validation = \Config\Services::validation();
-        
+
             $validation->setRules($this->validationsUploadsRules,$this->validationsUploadsCustomMessage);
 
             // Lancio la validazione, se fallisce lancio un eccezione
-            if ( ! $validation->withRequest($request)->run()) {           
+            if ( ! $validation->withRequest($request)->run()) {
                 throw new ValidationException($validation->getErrors());
             }
         }
@@ -350,11 +350,11 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Funzione per l'aggiunta dei file allo zip
-     * 
+     *
      * @param ZipArchive        $zip    Istanza dello zip
      * @param UploadedFile[]    $files  Lista dei file
-     * 
-     * @return ZipArchive 
+     *
+     * @return ZipArchive
      */
     protected function addFileToZip(ZipArchive $zip, array $files) : ZipArchive {
 
@@ -363,19 +363,19 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
          // Nome del file da aggiungere all'archivio
          $filename = null;
- 
+
          foreach ( $files as $file ) {
- 
+
              /**
               * Controllo se ci sono file con lo stesso nome da inserire nell'archivio.
-              * 
+              *
               * Salvo i file caricato nell'array con chiave il nome del file e come valore il numero di file con lo stesso nome.
-              * 
+              *
               * Se il file non si trova negli aggiunti lo inserisco e gli imposto come valore 1 essendo il primo,
               * altrimenti se il file già esiste negli aggiunti recupero il numero attuale di file con lo stesso nome
               * ed incremento. Successivamente viene eliminata l'estensione e viene aggiunto al nome il numero duplicato del nome
               * con la seguente sintassi "-NUMERO_ATTUALI" e viene riaggiunta l'estensione.
-              * 
+              *
               * Es. 3 file di nome "Test.pdf"
               *  L'archivio conterrà:
               *      - Test.pdf
@@ -383,26 +383,26 @@ abstract class CRUDFileService extends CRUDService implements FileService {
               *      - Test-2.pdf
               */
              if ( ! in_array($file['name'], array_keys($filesAdded), true) ) {
-                 
+
                  if ( ! isset($filesAdded[$file['name']] ) ) {
                      $filesAdded[$file['name']] = 1;
                  }
- 
+
                  $filename = $file['name'];
              }
              else {
- 
+
                  // Recupero il numero di file con lo stesso nome già caricati
                  $actualFileWithSameName = $filesAdded[$file['name']];
- 
+
                  $filesAdded[$file['name']] += 1;
- 
+
                  $nameWithoutExtension = str_replace('.'.$file['extension'], '' , $file['name']);
- 
+
                  // Imposto il nuovo nome
-                 $filename = $nameWithoutExtension.'-'.$actualFileWithSameName.'.'.$file['extension'];        
+                 $filename = $nameWithoutExtension.'-'.$actualFileWithSameName.'.'.$file['extension'];
              }
- 
+
              // Aggiunto il file all'archivio.
              $zip->addFile($this->pathUpload.$file['hash_name'], $filename);
          }
@@ -414,7 +414,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Funziona per controllare se ci sono stati errori
-     * 
+     *
      * @return bool TRUE se ci sono stati errori, altrimenti FALSE
      */
     public function hasUploadErrors() : bool {
@@ -425,7 +425,7 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Funzione che restituisce la lista degli errori che hanno avuto un errore
-     * 
+     *
      * @return string[]
      */
     public function getUploadErrors() : array {
@@ -435,14 +435,14 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     //------------------------------------------------------------------------------------------
 
-    /** 
+    /**
      * Callback per gestione dei dati pre-upload
-     * 
+     *
      * @access protected
-     * 
+     *
      * @param array         &$files     Lista dei file da caricare
      * @param array|null    $resource  Risorsa da associare (Default null)
-     * 
+     *
      * @return void
      */
     protected function preUploadCallback(array &$files, ?array $resource = null) : void {}
@@ -451,15 +451,15 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Funzione per la definizione della riga da inserire nel database per i file
-     *  
+     *
      * @access protected
-     * 
-     * @abstract 
-     * 
+     *
+     * @abstract
+     *
      * @param UploadedFile  $file           Istanza del file
      * @param string        $hashName       Nome hashato del file caricato
      * @param array|null    $resource       Dati delle risorsa a cui collegare se esiste
-     * 
+     *
      * @return array    Riga da inserire nel database
      */
     abstract function createUploadRow(UploadedFile $file, string $hashName, ?array $resource = null ) : array;
@@ -468,13 +468,13 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Funzione che restituisce il formato delle risposta al download
-     * 
+     *
      * @access protected
-     * 
+     *
      * @abstract
-     * 
-     * @param array $file   Dati del file 
-     * 
+     *
+     * @param array $file   Dati del file
+     *
      * @return array    Risposta da inviare al client (Es. ['original_path' => PATH_FILE, 'original_name' => NOME_ORIGINALE])
      */
     abstract function getDownloadData(array $file) : array;
@@ -483,9 +483,9 @@ abstract class CRUDFileService extends CRUDService implements FileService {
 
     /**
      * Callback eseguita pre-cancellazione del file
-     *  
+     *
      * @param array $file   File da cancellare
-     * 
+     *
      * @return void
      */
     protected function preDeleteFileCallback(array $file) : void {}

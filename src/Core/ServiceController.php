@@ -17,7 +17,7 @@ use SamagTech\Crud\Traits\CrudTrait;
  *
  * @implements CrudInterface
  * @extends Controller
- * @abstract 
+ * @abstract
  */
 abstract class ServiceController extends Controller implements ServiceControllerInterface {
 
@@ -25,27 +25,27 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Variabile per la definizione del sottomodulo che deve essere utilizzato
-     * 
+     *
      * @var CRUDService
      * @access public
      */
     public CRUDService $service;
 
     /**
-     * Variabile che contiene i dati inerenti all'utente 
+     * Variabile che contiene i dati inerenti all'utente
      * autenticato tramite JWT
-     * 
+     *
      * @var CurrentUser
      * @access public
      */
     public ?object $currentUser = null;
 
     /**
-     * Array contenente i messaggi di default 
+     * Array contenente i messaggi di default
      * per le risposte delle API
-     * 
+     *
      * @var array
-     * @access public 
+     * @access public
      */
     public array $messages = [
         'create'        =>  'La risorsa è stata creata',
@@ -57,7 +57,7 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Service di default
-     * 
+     *
      * @var string
      * @access protected
      */
@@ -65,12 +65,12 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Lista di servizi esterni al default service
-     * 
+     *
      * Es. [
      *  'token1' => '\App\Modules\Examples\Services\Examples1::class ',
      *  'token2' => '\App\Modules\Examples\Services\Examples2::class ',
      * ]
-     * 
+     *
      * @var string[]
      * @access protected
      */
@@ -89,11 +89,11 @@ abstract class ServiceController extends Controller implements ServiceController
 	 * Constructor.
 	 */
 	public function initController(
-        \CodeIgniter\HTTP\RequestInterface $request, 
-        \CodeIgniter\HTTP\ResponseInterface $response, 
+        \CodeIgniter\HTTP\RequestInterface $request,
+        \CodeIgniter\HTTP\ResponseInterface $response,
         \Psr\Log\LoggerInterface $logger
     ) {
-    
+
         // Do Not Edit This Line
 		parent::initController($request, $response, $logger);
 
@@ -108,7 +108,7 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Costruttore.
-     * 
+     *
      */
     public function __construct() {
 
@@ -119,7 +119,7 @@ abstract class ServiceController extends Controller implements ServiceController
         if ( is_null($this->defaultService) ) {
             die('Il servizio di default non è impostato');
         }
-        
+
         // Inizializzo il servizio da utilizzare
         $this->service = $this->makeService($this->currentUser->app_token ?? null);
 
@@ -129,16 +129,16 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @implements Factory
-     * 
+     *
      */
     public function makeService($token): CRUDService {
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
             return new $this->services[$token];
         }
-        
+
         return new $this->defaultService;
     }
 
@@ -146,7 +146,7 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Route per la creazione di una nuova risorsa
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function create() : Response {
@@ -165,16 +165,16 @@ abstract class ServiceController extends Controller implements ServiceController
         }
 
         return $this->respondCreated($resource);
-        
+
     }
 
     //--------------------------------------------------------------------------------------------
 
     /**
      * Route per la lettura dei dati di una o più risorse
-     * 
+     *
      * @param int $id   Identificativo della singola risorsa ( Default 'null')
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function retrieve(int $id = null) : Response {
@@ -188,7 +188,7 @@ abstract class ServiceController extends Controller implements ServiceController
         catch(GenericException $e) {
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
-        
+
         return $this->respond($data, 200, $this->messages['retrieve']);
     }
 
@@ -196,9 +196,9 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Route per la modifica di una risorsa
-     * 
+     *
      * @param int $id   Identificativo della risorsa da modifica
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function update(int $id ) : Response {
@@ -224,13 +224,13 @@ abstract class ServiceController extends Controller implements ServiceController
 
     /**
      * Route per la cancellazione di una risorsa
-     *  
+     *
      * @param int $id  Identificativo della risorsa da cancellare
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function delete(int $id) : Response {
-        
+
         // Recupero l'identificativo della risorsa appena creata
         try {
             $this->service->delete($this->request,$id);
@@ -244,13 +244,13 @@ abstract class ServiceController extends Controller implements ServiceController
 
         return $this->respondDeleted(['item_id'  =>  $id], $this->messages['delete']);
     }
-    
+
     //-----------------------------------------------------------------------------
 
     /**
-     * Funzione per il fixing del CORS 
-     * 
-     * @return Response 
+     * Funzione per il fixing del CORS
+     *
+     * @return Response
      */
     public function  options() : Response {
         return $this->response->setStatusCode(Response::HTTP_OK);

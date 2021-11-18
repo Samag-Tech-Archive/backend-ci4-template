@@ -7,7 +7,7 @@ use SamagTech\Log\Config\Log;
  *
  * @package Log
  * @author  Alessandro Marotta <alessandro.marotta@samag.tech>
- * 
+ *
  */
 class LogModel extends \CodeIgniter\Model {
 
@@ -15,7 +15,7 @@ class LogModel extends \CodeIgniter\Model {
 
     /**
      * Costruttore.
-     * 
+     *
      */
     public function __construct() {
         parent::__construct();

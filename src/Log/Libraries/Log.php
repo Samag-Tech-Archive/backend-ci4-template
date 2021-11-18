@@ -12,21 +12,21 @@ use SamagTech\Log\Models\LogModel;
  *
  * @package Log
  * @author  Alessandro Marotta <alessandro.marotta@samag.tech>
- * 
+ *
  */
 class Log  {
 
     /**
      * Modello per il log
-     * 
-     * @var LogModel 
+     *
+     * @var LogModel
      * @access private
      */
     private LogModel $model;
 
     /**
      * Tabella da loggare
-     * 
+     *
      * @var string
      * @access private
      */
@@ -34,7 +34,7 @@ class Log  {
 
     /**
      * Utente corrente
-     * 
+     *
      * @var CurrentUser
      * @access private
      */
@@ -42,7 +42,7 @@ class Log  {
 
     /**
      * Servizio che effettua genera il log
-     * 
+     *
      * @var CRUDService
      * @access private
      */
@@ -50,7 +50,7 @@ class Log  {
 
     /**
      * Configurazione.
-     *  
+     *
      * @var ConfigLog
      * @access private
      */
@@ -58,7 +58,7 @@ class Log  {
 
     /**
      * Configurazione applicazione
-     *  
+     *
      * @var Application
      * @access private
      */
@@ -68,13 +68,13 @@ class Log  {
 
     /**
      * Costruttore.
-     * 
+     *
      * @param string $table     Tabella da loggare
      * @param int    $userID    Identificativo dell'utente che esegue l'azione
-     * 
+     *
      */
     public function __construct(string $table, CRUDService $service, CurrentUser $user = null) {
-        
+
         // Istanzio il modello
         $this->model = new LogModel();
 
@@ -92,7 +92,7 @@ class Log  {
 
     /**
      * Imposta la tabella da loggare
-     * 
+     *
      * @param string $table
      * @return void
      */
@@ -102,7 +102,7 @@ class Log  {
 
     /**
      * Restituisce la tabella di log
-     * 
+     *
      * @return string
      */
     public function getTable() : string { return $this->table; }
@@ -111,7 +111,7 @@ class Log  {
 
     /**
      * Imposta l'identificativo utente
-     * 
+     *
      * @param CurrentUser $userID
      * @return void
      */
@@ -121,7 +121,7 @@ class Log  {
 
     /**
      * Restituisce l'identificativo utente.
-     * 
+     *
      * @return CurrentUser
      */
     public function getUser() : CurrentUser { return $this->user; }
@@ -131,7 +131,7 @@ class Log  {
 
     /**
      * Imposta il servizio che genera il log
-     * 
+     *
      * @param CRUDService $service
      * @return void
      */
@@ -141,7 +141,7 @@ class Log  {
 
     /**
      * Restituisce l'identificativo utente.
-     * 
+     *
      * @return CRUDService
      */
     public function getService() : CRUDService { return $this->service; }
@@ -150,13 +150,13 @@ class Log  {
 
     /**
      * Funzione per la creazione di un log
-     * 
+     *
      * @param string    $typeLog        Tipo di log
      * @param array     $old            Dati vecchi
      * @param array     $new            Dati nuovi (Default null in caso di creazione, cancellazione o eccezioni).
-     * 
+     *
      * @throws  LogException    Eccezione per i log
-     * 
+     *
      * @return void
      */
     public function create(string $typeLog, int $rowID, array $old, array $new = null) : void {
@@ -179,7 +179,7 @@ class Log  {
         /**
          * Se la tipologia è compresa da una di quelle considerate come modifica dei dati
          * allora i nuovi dati devono essere impostati
-         * 
+         *
          */
         if ( in_array($typeLog, $this->config->updatedType, true)  && ( is_null($new) || empty($new) ) ) {
             throw new LogException('In fase di update devono essere settati i nuovi dati');

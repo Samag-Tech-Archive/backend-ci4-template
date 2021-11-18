@@ -8,12 +8,12 @@
  * @author  Alessandro Marotta <alessandro.marotta@samag.tech>
  */
 class Migration_Log extends \CodeIgniter\Database\Migration {
-    
-    
+
+
     public function up() {
-        
+
         $config = config('Log');
-        
+
         $fields = [
             'id'    =>  [
                 'type'              => 'INT',
@@ -62,7 +62,7 @@ class Migration_Log extends \CodeIgniter\Database\Migration {
     }
 
     public function down() {
-        
+
         $config = config('Log');
 
         $this->forge->dropTable($config->table);

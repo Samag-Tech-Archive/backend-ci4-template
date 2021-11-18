@@ -13,16 +13,16 @@ use SamagTech\Crud\Exceptions\UploadException;
  * Classe astratta per la definizione di un nuovo CRUD con la gestione dei file
  *
  * @extends ServiceController
- * @abstract 
+ * @abstract
  */
 abstract class FileServiceController extends ServiceController implements FileServiceControllerInterface {
-    
+
     /**
-     * Array contenente i messaggi di default 
+     * Array contenente i messaggi di default
      * per le risposte delle API
-     * 
+     *
      * @var array
-     * @access public 
+     * @access public
      */
     public array $messages = [
         'create'        =>  'La risorsa è stata creata',
@@ -35,12 +35,12 @@ abstract class FileServiceController extends ServiceController implements FileSe
     ];
 
     //---------------------------------------------------------------------------
-    
+
     /**
      * Route per la creazione di file con upload dei dati
-     * 
+     *
      * @param int $resourceID   Identificativo della singola risorsa a cui sono legati i file
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function uploads(?int $resourceID = null): Response {
@@ -71,9 +71,9 @@ abstract class FileServiceController extends ServiceController implements FileSe
 
     /**
      * Route per il download di un file
-     * 
+     *
      * @param int $fileID   Identificativo del file da scaricare
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function download(int $fileID): Response {
@@ -99,9 +99,9 @@ abstract class FileServiceController extends ServiceController implements FileSe
 
     /**
      * Route per la cancellazione del file
-     * 
+     *
      * @param int $fileID   Identificativo del file da cancellare
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function deleteFile(int $fileID): Response {
@@ -124,9 +124,9 @@ abstract class FileServiceController extends ServiceController implements FileSe
 
     /**
      * Route per il download di tutti i file
-     * 
+     *
      * @param int $resourceID   Identificativo della risorsa a cui sono legati tutti i file da scaricarew
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function downloadAllByResource(int $resourceID): Response {
@@ -151,7 +151,7 @@ abstract class FileServiceController extends ServiceController implements FileSe
 
     /**
      * Route per il download di una lista di file
-     * 
+     *
      * @return \CodeIgniter\HTTP\Response
      */
     public function downloadFiles(): Response {
@@ -174,5 +174,5 @@ abstract class FileServiceController extends ServiceController implements FileSe
     }
 
     //---------------------------------------------------------------------------
-    
+
 }

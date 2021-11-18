@@ -5,17 +5,17 @@ namespace SamagTech\Crud\Core;
 use CodeIgniter\Database\Migration;
 
 /**
- * Classe da esterndere per le migrazioni di tabelle a cui 
+ * Classe da esterndere per le migrazioni di tabelle a cui
  * è possibile aggiungere dati accessori
- * 
+ *
  * @method addFieldsAccessories(array $fields) : array   Aggiunge i dati accessori alla classe
- * 
+ *
  */
 abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna created_date
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -23,7 +23,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna updated_date
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -31,7 +31,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna sys_updated_date
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -39,7 +39,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna deleted_date
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -47,7 +47,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna created_by
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -55,7 +55,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Flag che indica se creare la colonna updated_by
-     * 
+     *
      * @access protected
      * @var bool
      */
@@ -63,7 +63,7 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Lista delle query per l'aggiunta delle colonne
-     * 
+     *
      * @var array
      * @access protected
      */
@@ -91,15 +91,15 @@ abstract class MyMigrations extends Migration {
 
     /**
      * Funzione per aggiungere le colonne accessorie
-     * 
+     *
      * @param array &$fields     Array contentente i campi della tabella
-     * 
+     *
      * @access protected
-     * 
+     *
      * @return array  Ritorna l'array con i campi accessori
      */
     protected function addFieldsAccessories(array &$fields) : array {
-        
+
         // Per ogni flag impostato a true aggiungo la colonna accessoria
         if ( $this->createdDate ) {
             array_push($fields, $this->columnDefinition['created_date']);
@@ -110,7 +110,7 @@ abstract class MyMigrations extends Migration {
         }
 
         if ( $this->sysUpdatedDate ) {
-            array_push($fields, $this->columnDefinition['sys_updated_date']);            
+            array_push($fields, $this->columnDefinition['sys_updated_date']);
         }
 
         if ( $this->deletedDate ) {
