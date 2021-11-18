@@ -182,8 +182,8 @@ class CreateModule extends BaseCommand {
 		if ( $useBulk ) {
 			$bulkTemplate = <<<EOD
 			\$subroutes->post('bulk', '{moduleName}::bulkCreate');
-			\$subroutes->put('bulk', '{moduleName}::bulkUpdate');
-			\$subroutes->delete('bulk', '{moduleName}::bulkDelete');
+				\$subroutes->put('bulk', '{moduleName}::bulkUpdate');
+				\$subroutes->delete('bulk', '{moduleName}::bulkDelete');
 			EOD;
 		}
 
@@ -287,7 +287,7 @@ class CreateModule extends BaseCommand {
 
 		class {moduleName} extends FileServiceController {
 
-			protected ?string \$defaultService = Services{moduleName}::class
+			protected ?string \$defaultService = Services{moduleName}::class;
 		}
 		EOD;
 	}
@@ -305,7 +305,7 @@ class CreateModule extends BaseCommand {
 
 		if ( $useBulk ) {
 			$serviceName = 'CRUDBulkService';
-			$keyForBulk = 'protected ?string $keyBulk = {table};';
+			$keyForBulk = 'protected ?string $keyBulk = \'{table}\';';
 		}
 
 		return <<<EOD
