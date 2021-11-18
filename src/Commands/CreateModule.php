@@ -122,17 +122,18 @@ class CreateModule extends BaseCommand {
 
 		$modelName = singular($moduleName);
 
+		$table = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $moduleName));
+
 		// Parso il template per il servizio
 		if ( $useFile ) {
 			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate());
 		}
 		else {
-			$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate($useBulk));
+			$template = str_replace(['{moduleName}', '{modelName}', '{table}'], [$moduleName, $modelName, $table], $this->getServiceTemplate($useBulk));
 		}
 
 		write_file($serviceModulePath.'/'.$moduleName.'.php', $template);
 
-		$table = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $moduleName));
 
 		$table_split = explode('_', $table);
 
@@ -180,10 +181,9 @@ class CreateModule extends BaseCommand {
 
 		if ( $useBulk ) {
 			$bulkTemplate = <<<EOD
-				\$subroutes->post('bulk', '{moduleName}::bulkCreate');
-				\$subroutes->put('bulk', '{moduleName}::bulkUpdate');
-				\$subroutes->delete('bulk', '{moduleName}::bulkDelete');
-
+			\$subroutes->post('bulk', '{moduleName}::bulkCreate');
+			\$subroutes->put('bulk', '{moduleName}::bulkUpdate');
+			\$subroutes->delete('bulk', '{moduleName}::bulkDelete');
 			EOD;
 		}
 
@@ -301,9 +301,11 @@ class CreateModule extends BaseCommand {
 	private function getServiceTemplate($useBulk = false) {
 
 		$serviceName = 'CRUDService';
+		$keyForBulk = '';
 
 		if ( $useBulk ) {
 			$serviceName = 'CRUDBulkService';
+			$keyForBulk = 'protected ?string $keyBulk = {table};';
 		}
 
 		return <<<EOD
@@ -315,6 +317,8 @@ class CreateModule extends BaseCommand {
 		class {moduleName} extends $serviceName {
 
 			protected ?string \$modelName = {modelName}Model::class;
+
+			$keyForBulk
 
 			protected array \$validationsRules = [
 				'generic'	=> [],
@@ -352,6 +356,7 @@ class CreateModule extends BaseCommand {
 
 			protected ?string \$fileModelName = {fileModelName}Model::class;
 
+
 			protected array \$validationsRules = [
 				'generic'	=> [],
 				'insert'	=> [],
@@ -366,6 +371,14 @@ class CreateModule extends BaseCommand {
 
 			public function __construct() {
 				parent::__construct();
+			}
+
+			public function createUploadRow(UploadedFile \$file, string \$hashName, ?array \$resource = null ) : array {
+				return [];
+			}
+
+			public function getDownloadData(array \$file) : array {
+				return [];
 			}
 		}
 		EOD;
