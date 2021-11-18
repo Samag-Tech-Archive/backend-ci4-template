@@ -51,7 +51,7 @@ class CreateModule extends BaseCommand {
 	 */
 	protected $options = [
 		'--file' 		=> 'Modulo con gestione di file',
-		// '--only-file' 	=> 'Modulo con di file'
+		'--bulk'		=> 'Modulo con le funzionalità bulk'
 	];
 
 	/**
@@ -66,11 +66,6 @@ class CreateModule extends BaseCommand {
 		// Recupero il nome del modulo
 		$moduleName = array_shift($params);
 
-		// if ( CLI::getOption('file') && CLI::getOption('only-file') ) {
-		// 	CLI::write('Le opzioni --file e --only-file non possono essere usate contemporaneamente', 'red');
-		// 	return;
-		// }
-
 		// Implementazione gestione di
 		$file = CLI::getOption('file') ?? null;
 
@@ -78,15 +73,15 @@ class CreateModule extends BaseCommand {
 			$file = CLI::prompt('Inserisci il nome del modello del file');
 		}
 
+		// Implementazione delle funzionalità bulk
+		$useBulk = CLI::getOption('bulk');
+
 		$useFile = $file && ! is_null($file) && is_string($file);
 
-		// $onlyFile = CLI::getOption('only-file') ?? null;
-
-		// if ( $onlyFile && ! is_string($onlyFile) ) {
-		// 	$onlyFile = CLI::prompt('Inserisci il nome del modello del file');
-		// }
-
-		// $useOnlyFile = $onlyFile && ! is_null($onlyFile) && is_string($onlyFile);
+		if ( $useFile && $useBulk ) {
+			CLI::error('L\'opzione file e bulk non possono essere eseguite insieme');
+			return;
+		}
 
 		// Controllo se il nome è presente, altrimenti lo faccio inserire
 		if ( empty($moduleName) ) {
@@ -116,12 +111,12 @@ class CreateModule extends BaseCommand {
 		mkdir($modelModulePath);
 
 		// Parso il template delle configurazione
-		$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate());
+		$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate($useBulk));
 
 		write_file($configModulePath.'/Routes.php', $template);
 
 		// Parso il template per il controller
-		$template = str_replace('{moduleName}', $moduleName, $useFile ? $this->getControllerWithFileTemplate() : $this->getControllerTemplate());
+		$template = str_replace('{moduleName}', $moduleName, $useFile ? $this->getControllerWithFileTemplate() : $this->getControllerTemplate($useBulk));
 
 		write_file($controllerModulePath.'/'.$moduleName.'.php', $template);
 
@@ -132,7 +127,7 @@ class CreateModule extends BaseCommand {
 			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate());
 		}
 		else {
-			$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate());
+			$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate($useBulk));
 		}
 
 		write_file($serviceModulePath.'/'.$moduleName.'.php', $template);
@@ -179,7 +174,18 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template del file di config
 	 *
 	 */
-	private function getConfigTemplate() {
+	private function getConfigTemplate($useBulk = false) {
+
+		$bulkTemplate = '';
+
+		if ( $useBulk ) {
+			$bulkTemplate = <<<EOD
+				\$subroutes->post('bulk', '{moduleName}::bulkCreate');
+				\$subroutes->put('bulk', '{moduleName}::bulkUpdate');
+				\$subroutes->delete('bulk', '{moduleName}::bulkDelete');
+
+			EOD;
+		}
 
 		return <<<EOD
 		<?php
@@ -197,7 +203,7 @@ class CreateModule extends BaseCommand {
 			\$subroutes->post('/', '{moduleName}::create');
 			\$subroutes->put('(:num)', '{moduleName}::update/$1');
 			\$subroutes->delete('(:num)', '{moduleName}::delete/$1');
-
+			$bulkTemplate
 		});
 		EOD;
 	}
@@ -243,15 +249,22 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template del controller
 	 *
 	 */
-	private function getControllerTemplate() {
+	private function getControllerTemplate($useBulk = false) {
+
+		$controllerName = 'ServiceController';
+
+		if ( $useBulk ) {
+			$controllerName = 'BulkServiceController';
+		}
+
 
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Controllers;
 
-		use SamagTech\Crud\Core\ServiceController;
+		use SamagTech\Crud\Core\\$controllerName;
 		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
 
-		class {moduleName} extends ServiceController {
+		class {moduleName} extends $controllerName {
 
 			protected ?string \$defaultService = Services{moduleName}::class;
 		}
@@ -285,15 +298,21 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template per il servizio
 	 *
 	 */
-	private function getServiceTemplate() {
+	private function getServiceTemplate($useBulk = false) {
+
+		$serviceName = 'CRUDService';
+
+		if ( $useBulk ) {
+			$serviceName = 'CRUDBulkService';
+		}
 
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Services;
 
-		use SamagTech\Crud\Core\CRUDService;
+		use SamagTech\Crud\Core\\$serviceName;
 		use App\Modules\{moduleName}\Models\{modelName}Model;
 
-		class {moduleName} extends CRUDService {
+		class {moduleName} extends $serviceName {
 
 			protected ?string \$modelName = {modelName}Model::class;
 
