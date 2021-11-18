@@ -252,11 +252,11 @@ abstract class CRUDService implements Service {
      */
     public function create(IncomingRequest $request) : array {
 
-        // Eseguo il check della validazione
-        $this->checkValidation($request,'insert');
-
         // Recupero i dati dalla richiesta
         $data = $request->getJSON(TRUE);
+
+        // Eseguo il check della validazione
+        $this->checkValidation($data,'insert');
 
         // Callback pre-inserimento
         $data = $this->preInsertCallback($data);
@@ -371,11 +371,11 @@ abstract class CRUDService implements Service {
             throw new ResourceNotFoundException();
         }
 
-        // Eseguo il check della validazione
-        $this->checkValidation($request,'update');
-
         // Recupero i dati dalla richiesta
         $data = $request->getJSON(TRUE);
+
+        // Eseguo il check della validazione
+        $this->checkValidation($data,'update');
 
         // Callback pre-modifica
         $data = $this->preUpdateCallback($id, $data);
@@ -489,14 +489,13 @@ abstract class CRUDService implements Service {
     /**
      * Funzione che gestisce la validazione sia in insert che in update.
      *
-     * @param string $action    Azione che si sta compiendo Default ('insert')
+     * @param array<string,mixed>   $data      Array contenente i dati della richiesta da validare
+     * @param string                $action    Azione che si sta compiendo Default ('insert')
      *
      * @return void
      */
-    protected function checkValidation(IncomingRequest $request, string $action = 'insert') {
+    protected function checkValidation(array $data, string $action = 'insert') {
 
-        // Recupero i dati
-        $data = $request->getJSON(TRUE);
 
         // Recupero le regole di validazioni generiche
         $generics = isset($this->validationsRules['generic']) ? $this->validationsRules['generic'] : [];
