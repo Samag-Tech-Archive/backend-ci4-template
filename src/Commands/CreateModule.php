@@ -6,7 +6,7 @@ use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 
 class CreateModule extends BaseCommand {
-	
+
 	/**
 	 * The Command's Group
 	 *
@@ -71,7 +71,7 @@ class CreateModule extends BaseCommand {
 		// 	return;
 		// }
 
-		// Implementazione gestione di 
+		// Implementazione gestione di
 		$file = CLI::getOption('file') ?? null;
 
 		if ( $file && ! is_string($file) ) {
@@ -130,7 +130,7 @@ class CreateModule extends BaseCommand {
 		// Parso il template per il servizio
 		if ( $useFile ) {
 			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate());
-		} 
+		}
 		else {
 			$template = str_replace(['{moduleName}', '{modelName}'], [$moduleName, $modelName], $this->getServiceTemplate());
 		}
@@ -144,7 +144,7 @@ class CreateModule extends BaseCommand {
 		$alias = '';
 
 		foreach ( $table_split as $split ) {
-			$alias .= substr(ucfirst($split),0,1); 
+			$alias .= substr(ucfirst($split),0,1);
 		}
 
 		// Parso il template per il modello
@@ -161,7 +161,7 @@ class CreateModule extends BaseCommand {
 			$alias = '';
 
 			foreach ( $table_split as $split ) {
-				$alias .= substr(ucfirst($split),0,1); 
+				$alias .= substr(ucfirst($split),0,1);
 			}
 
 			// Parso il template per il modello
@@ -171,25 +171,25 @@ class CreateModule extends BaseCommand {
 		}
 
 		CLI::write(CLI::color('Il modulo è stato creato', 'green'));
-	}	
+	}
 
 	//-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template del file di config
-	 * 
+	 *
 	 */
 	private function getConfigTemplate() {
 
 		return <<<EOD
-		<?php 
-		
+		<?php
+
 		if ( !isset(\$routes) ) {
 			\$routes = \Config\Services::routes(true);
 		}
 
 		\$routes->setDefaultNamespace('App\Modules\{moduleName}\Controllers');
-		
+
 		\$routes->group('{route}', function(\$subroutes) {
 
 			\$subroutes->get('/', '{moduleName}::retrieve');
@@ -203,22 +203,22 @@ class CreateModule extends BaseCommand {
 	}
 
 	//-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template del file di config
-	 * 
+	 *
 	 */
 	private function getConfigWithFileTemplate() {
 
 		return <<<EOD
-		<?php 
-		
+		<?php
+
 		if ( !isset(\$routes) ) {
 			\$routes = \Config\Services::routes(true);
 		}
 
 		\$routes->setDefaultNamespace('App\Modules\{moduleName}\Controllers');
-		
+
 		\$routes->group('{route}', function(\$subroutes) {
 
 			\$subroutes->get('/', '{moduleName}::retrieve');
@@ -241,7 +241,7 @@ class CreateModule extends BaseCommand {
 
 	/**
 	 * Restituisce il template del controller
-	 * 
+	 *
 	 */
 	private function getControllerTemplate() {
 
@@ -249,16 +249,20 @@ class CreateModule extends BaseCommand {
 		<?php namespace App\Modules\{moduleName}\Controllers;
 
 		use SamagTech\Crud\Core\ServiceController;
-		
-		class {moduleName} extends ServiceController {}
-		EOD;		
+		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
+
+		class {moduleName} extends ServiceController {
+
+			protected ?string \$defaultService = Services{moduleName}::class;
+		}
+		EOD;
 	}
 
 	//-----------------------------------------------------------------------------------
 
 	/**
 	 * Restituisce il template del controller
-	 * 
+	 *
 	 */
 	private function getControllerWithFileTemplate() {
 
@@ -266,25 +270,29 @@ class CreateModule extends BaseCommand {
 		<?php namespace App\Modules\{moduleName}\Controllers;
 
 		use SamagTech\Crud\Core\FileServiceController;
-		
-		class {moduleName} extends FileServiceController {}
-		EOD;		
+		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
+
+		class {moduleName} extends FileServiceController {
+
+			protected ?string \$defaultService = Services{moduleName}::class
+		}
+		EOD;
 	}
 
 	//-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template per il servizio
-	 * 
+	 *
 	 */
 	private function getServiceTemplate() {
-		
+
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Services;
 
 		use SamagTech\Crud\Core\CRUDService;
 		use App\Modules\{moduleName}\Models\{modelName}Model;
-		
+
 		class {moduleName} extends CRUDService {
 
 			protected ?string \$modelName = {modelName}Model::class;
@@ -296,7 +304,7 @@ class CreateModule extends BaseCommand {
 			];
 
 			protected array \$validationsCustomMessage = [];
-			
+
 			public function __construct() {
 				parent::__construct();
 			}
@@ -305,20 +313,20 @@ class CreateModule extends BaseCommand {
 	}
 
 	//-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template per il servizio
-	 * 
+	 *
 	 */
 	private function getServiceWithFileTemplate() {
-		
+
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Services;
 
 		use SamagTech\Crud\Core\CRUDFileService;
 		use App\Modules\{moduleName}\Models\{modelName}Model;
 		use App\Modules\{moduleName}\Models\{fileModelName}Model;
-		
+
 		class {moduleName} extends CRUDFileService {
 
 			protected ?string \$modelName = {modelName}Model::class;
@@ -332,11 +340,11 @@ class CreateModule extends BaseCommand {
 			];
 
 			protected array \$validationsCustomMessage = [];
-			
+
 			protected array \$validationsUploadsRules = [];
 
 			protected array \$validationsUploadsCustomMessage = [];
-			
+
 			public function __construct() {
 				parent::__construct();
 			}
@@ -345,20 +353,20 @@ class CreateModule extends BaseCommand {
 	}
 
     //-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template per il modello
-	 * 
+	 *
 	 */
 	private function getModelTemplate() {
-		
+
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Models;
 
 		use SamagTech\Crud\Core\CRUDModel;
 
 		class {modelName}Model extends CRUDModel {
-			
+
 			protected \$table      = '{table}';
 			protected \$alias      = '{alias}';
 		}
@@ -367,13 +375,13 @@ class CreateModule extends BaseCommand {
 	}
 
 	//-----------------------------------------------------------------------------------
-	
+
 	/**
 	 * Restituisce il template per il modello con l'implemenazione dei file
-	 * 
+	 *
 	 */
 	private function getModelWithFileTemplate() {
-		
+
 		return <<<EOD
 		<?php namespace App\Modules\{moduleName}\Models;
 
@@ -381,7 +389,7 @@ class CreateModule extends BaseCommand {
 		use SamagTech\Crud\Core\FileModelInterface;
 
 		class {fileModelName}Model extends CRUDModel implements FileModelInterface {
-			
+
 			protected \$table      = '{table}';
 			protected \$alias      = '{alias}';
 
@@ -403,5 +411,5 @@ class CreateModule extends BaseCommand {
     //-----------------------------------------------------------------------------------
 
 
-	
+
 }
