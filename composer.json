@@ -14,7 +14,7 @@
             "SamagTech\\Log\\" : "src/Log/"
         },
         "files" : [
-            "src/helpers,php"
+            "src/helpers.php"
         ]
     },
     "minimum-stability": "stable",
