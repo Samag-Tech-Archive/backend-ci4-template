@@ -12,7 +12,10 @@
         "psr-4": {
             "SamagTech\\Crud\\" : "src/",
             "SamagTech\\Log\\" : "src/Log/"
-        }
+        },
+        "files" : [
+            "src/helpers,php"
+        ]
     },
     "minimum-stability": "stable",
     "require": {
