@@ -9,6 +9,9 @@ use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Singleton\CurrentUser;
 use CodeIgniter\I18n\Time;
 use SamagTech\Crud\Config\Application;
+use SamagTech\Crud\Exceptions\GenericException;
+use SamagTech\ExcelLib\Factory as ExcelFactory;
+use SamagTech\ExcelLib\Writer;
 use SamagTech\Log\Libraries\Log;
 
 /**
@@ -165,6 +168,57 @@ abstract class CRUDService implements Service {
      * Default []
      */
     protected array $joinFieldsSort = [];
+
+    /**
+     * Path dove vengono salvate le esportazioni Excel
+     *
+     * @var string
+     * @access protected
+     *
+     * Default WRITEPATH.'export/'
+     */
+    protected string $exportPath = WRITEPATH.'export/';
+
+    /**
+     * Nome di default del file Excel generato durante l'esportazione
+     *
+     * @var string|null
+     * @access protected
+     *
+     */
+    protected ?string $exportFilename = null;
+
+    /**
+     * Lista dei campi a cui deve essere ignorata
+     * la formattazione
+     *
+     * @var array|null
+     * @access protected
+     *
+     */
+    protected ?array $exportIgnoreFieldsFormat = null;
+
+    /**
+     * Lista dell'intestazione delle colonne del file
+     *
+     * L'ordine è importante per essere allineato con i valori
+     *
+     * @var array
+     * @access protected
+     *
+     * Default []
+     */
+    protected array $exportHeader = [];
+
+    /**
+     * Lista delle colonna da eliminare durante l'esportazione Excel
+     *
+     * @var array
+     * @access protected
+     *
+     * Default ['id' ]
+     */
+    protected array $exportDeleteColumns = ['id'];
 
     /**
      * Istanza del database
@@ -461,6 +515,45 @@ abstract class CRUDService implements Service {
     //------------------------------------------------------------------------------------------------------
 
     /**
+     * {@inheritDoc}
+     *
+     */
+    public function export(IncomingRequest $request) : string {
+
+        // Elimino la paginazione dal listaggio
+        $this->noPagination = true;
+
+        // Lancia la funzione di listaggio
+        $data = $this->retrieve($request);
+
+        if ( empty ($data['rows']) ) {
+            throw new GenericException('Non ci sono dati da esportare');
+        }
+
+        $data = $data['rows'];
+
+        // Eseguo delle operazioni sui dati pre-esportazione
+        $this->preExportCallback($data);
+
+        // Creo l'istanza del generatore dell'excel
+        $writer = (new ExcelFactory)->createWriter($this->exportPath, $this->exportFilename, $this->exportIgnoreFieldsFormat);
+
+        $writer->setHeader($this->exportHeader)
+                ->setBody($data);
+
+        // Cancella le colonne inutili
+        $this->deleteUnusedColumns($data);
+
+        // Callback per modifiche pre-build dell'excel
+        $writer = $this->preBuildExcelCallback($writer, $data);
+
+        return $writer->build();
+
+    }
+
+    //------------------------------------------------------------------------------------------------------
+
+    /**
      * Funzione per il recupero di dati extra in caso di create/update
      *
      * @param array $data   Dati delle richiesta
@@ -684,6 +777,56 @@ abstract class CRUDService implements Service {
      */
     protected function postRetrieveCallback( array $data, bool $isSingleResource = false ) : array  {
         return $data;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Callback per la modifica dei dati pre-esportazione excel
+     *
+     * @param array &$data   Dati recuperati dalla lista
+     *
+     * @return void
+     */
+    protected function preExportCallback(array &$data) : void {}
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Callback per la gestione dei dati e dell'istanza del generatore
+     * prima di lanciare la build dell'excel
+     *
+     * @param Writer    $writer    Istanza generatore Excel
+     * @param array     $data      Dati da esportare
+     *
+     * @return Writer   Ritorna l'istanza modificata
+     *
+     */
+    protected function preBuildExcelCallback (Writer $writer, array &$data ) : Writer {
+        return $writer;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Elimina le colonne inutili per l'esportazione excel
+     *
+     * @param array &$data  Dati da esportare
+     *
+     * @return void
+     */
+    protected function deleteUnusedColumns(array &$data) : void {
+
+        // Se l'array delle colonne da cancellare è vuoto non faccio nulla
+        if ( empty ($this->exportDeleteColumns) ) return;
+
+        // Per ogni riga elimino le colonne da cancellare
+        foreach ( $data as &$d ) {
+
+            foreach ( $this->exportDeleteColumns as $edc ) {
+                unset($d[$edc]);
+            }
+        }
     }
 
     //---------------------------------------------------------------------------------------------------

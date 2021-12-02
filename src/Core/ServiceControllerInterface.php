@@ -52,4 +52,15 @@ interface ServiceControllerInterface extends Factory {
      * @return \CodeIgniter\HTTP\Response
      */
     public function delete(int $id) : Response;
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Route per l'esportazione excel della lista
+     *
+     * @return  \CodeIgniter\HTTP\Response
+     */
+    public function export() : Response;
+
+    //---------------------------------------------------------------------------------------------------
 }

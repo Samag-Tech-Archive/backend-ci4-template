@@ -75,4 +75,17 @@ interface Service {
      * @return bool  Ritorna TRUE se la risorsa è stata cancellata, FALSE altrimenti
      */
     public function delete(IncomingRequest $request, int $id) : bool;
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Funzione per l'esportazione excel della lista
+     *
+     * @param IncomingRequest $request   Dati della richiesta
+     *
+     * @param string    Path per scaricare l'excel
+     */
+    public function export(IncomingRequest $request) : string;
+
+    //---------------------------------------------------------------------------------------------------
 }

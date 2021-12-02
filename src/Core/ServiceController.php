@@ -11,6 +11,7 @@ use SamagTech\Crud\Exceptions\UpdateException;
 use SamagTech\Crud\Exceptions\ValidationException;
 use SamagTech\Crud\Singleton\CurrentUser;
 use SamagTech\Crud\Traits\CrudTrait;
+use SamagTech\ExcelLib\ExcelException;
 
 /**
  * Classe astratta per la definizione di un nuovo CRUD.
@@ -52,6 +53,7 @@ abstract class ServiceController extends Controller implements ServiceController
         'retrieve'      =>  'Lista risorse',
         'update'        =>  'La risorsa è stata modificata',
         'delete'        =>  'La risorsa è stata cancellata',
+        'export'        =>  'Il file excel è pronto',
     ];
 
 
@@ -246,6 +248,28 @@ abstract class ServiceController extends Controller implements ServiceController
     }
 
     //-----------------------------------------------------------------------------
+
+    /**
+     * Route per l'esportazione Excel della lista
+     *
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function export() : Response {
+
+        try {
+            $path = $this->service->export($this->request);
+        }
+        catch(GenericException $e) {
+            return $this->fail($e->getMessage(), $e->getHttpCode());
+        }
+        catch (ExcelException $e ) {
+            return $this->fail($e->getMessage());
+        }
+
+        return $this->respond(['export_path' => $path], 200, $this->messages['export']);
+    }
+
+    //---------------------------------------------------------------------------------------------------
 
     /**
      * Funzione per il fixing del CORS
