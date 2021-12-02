@@ -203,6 +203,7 @@ class CreateModule extends BaseCommand {
 			\$subroutes->post('/', '{moduleName}::create');
 			\$subroutes->put('(:num)', '{moduleName}::update/$1');
 			\$subroutes->delete('(:num)', '{moduleName}::delete/$1');
+			\$subroutes->get('/', '{moduleName}::export');
 			$bulkTemplate
 		});
 		EOD;
@@ -232,6 +233,7 @@ class CreateModule extends BaseCommand {
 			\$subroutes->post('/', '{moduleName}::create');
 			\$subroutes->put('(:num)', '{moduleName}::update/$1');
 			\$subroutes->delete('(:num)', '{moduleName}::delete/$1');
+			\$subroutes->get('/', '{moduleName}::export');
 			\$subroutes->post('files', '{moduleName}::uploads');
 			\$subroutes->post('files/(:num)', '{moduleName}::uploads/$1');
 			\$subroutes->get('files/(:num)', '{moduleName}::download/$1');
