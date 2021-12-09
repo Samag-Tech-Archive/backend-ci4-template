@@ -589,7 +589,6 @@ abstract class CRUDService implements Service {
      */
     protected function checkValidation(array $data, string $action = 'insert') {
 
-
         // Recupero le regole di validazioni generiche
         $generics = isset($this->validationsRules['generic']) ? $this->validationsRules['generic'] : [];
 
