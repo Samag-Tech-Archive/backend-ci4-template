@@ -40,7 +40,7 @@ interface FileService {
      * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
      *
-     * @return array|string    Se è un array contiene i dati per il download, altrimenti se è una stringa il path per il download
+     * @return array<string,string>|string    Se è un array contiene i dati per il download, altrimenti se è una stringa il path per il download
      */
     public function download(int|string $fileID) : array|string;
 

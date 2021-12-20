@@ -8,14 +8,14 @@ use CodeIgniter\HTTP\IncomingRequest;
  *
  * @interface
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  */
 interface BulkService {
 
     //-------------------------------------------------------------------------------------------------------
 
     /**
-     * Funzione che dovrà creare un nuova risorsa.
+     * Creazione bulk delle risorse
      *
      * @param  IncomingRequest $request      Dati della richiesta
      *
@@ -23,16 +23,15 @@ interface BulkService {
      * @throws CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
      * @throws GenericException      Solleva quest'eccezione se c'è stato un errore generico
      *
-     * @return array  Ritorna l'array contente tutti i dati inseriti
+     * @return array<int,array<string,mixed>>  Ritorna l'array contente tutti i dati inseriti
      */
     public function bulkCreate(IncomingRequest $request) : bool;
 
     //--------------------------------------------------------------------------------------------------------
 
     /**
-     * Funzione che dovrà modifica una risorsa esistente
+     * Modifica bulk di risorse
      *
-     * @param  int              $id           Identificativo della risorsa
      * @param  IncomingRequest $request      Dati della richiesta
      *
      * @throws UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
@@ -47,9 +46,8 @@ interface BulkService {
     //--------------------------------------------------------------------------------------------------------
 
     /**
-     * Funzione che dovrà cancellare una risorsa esistente
+     * Cancellazione bulk di risorse.
      *
-     * @param  int              $id           Identificativo della risorsa
      * @param  IncomingRequest $request      Dati della richiesta
      *
      * @throws DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
