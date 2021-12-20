@@ -1,12 +1,13 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Contracts;
 
 use \CodeIgniter\HTTP\Response;
 
 /**
- * Interfaccia per la definizione delle route principali
- * di un controller CRUD per la generazione di dati bulk
+ * Definizione di un controller con le funzionalità bulk.
  *
- * @author Alessandro Marotta
+ * @interface
+ *
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
 interface BulkServiceControllerInterface {
@@ -37,4 +38,6 @@ interface BulkServiceControllerInterface {
      * @return \CodeIgniter\HTTP\Response
      */
     public function bulkDelete() : Response;
+
+    //---------------------------------------------------------------------------------------------------
 }

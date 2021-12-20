@@ -1,9 +1,10 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Contracts;
 
 /**
- * Interfaccia per la definizione dei metodi da implemetare sui modelli che gestiscono i file
+ * Definizione modello per la gestione di file.
  *
  * @interface
+ *
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  */
 interface FileModelInterface {
@@ -11,22 +12,22 @@ interface FileModelInterface {
     //---------------------------------------------------------------------------------
 
     /**
-     * Funzione che restituisce i dati di un file
+     * Restituisce i dati di un file
      *
-     * @param int  $fileID  Idenficativo del file
+     * @param int|string  $fileID  Idenficativo del file
      *
-     * @return array|null    Dati del file oppure null se non esiste
+     * @return array<string,mixed>|null    Dati del file oppure NULL se non esiste
      */
-    public function getFileByID(int $fileID) : ?array;
+    public function getFileByID(int|string $fileID) : ?array;
 
     //---------------------------------------------------------------------------------
 
     /**
-     * Funzione tutti i file di una risorsa
+     * Restituisce tutti i dati dei file legati ad un risorsa.
      *
-     * @param int $resourceID   Identificativo risorsa
+     * @param int|string $resourceID   Identificativo risorsa
      *
-     * @return array|null
+     * @return array<int,array<string,mixed>|null
      */
     public function getFilesByResource(int $resourceID) : ?array;
 
