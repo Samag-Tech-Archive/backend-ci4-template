@@ -1,11 +1,14 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per validazione in fase di creazione e modifica dei dati.
+ * Eccezione utilizzata per la gestione della validazione durante
+ * le fasi di creazioni e modifica di una risorsa
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class ValidationException extends AbstractCrudException {
+class ValidationException extends BaseCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore
@@ -27,22 +30,23 @@ class ValidationException extends AbstractCrudException {
     protected int $httpCode = 422;
 
     /**
-     * Array contentente gli errori di validazione
+     * Array contentente gli errori di validazione oppure il signolo
+     * errore di validazione.
      *
-     * @var array
+     * @var array|string
      * @access private
      */
-    private array $errors = [];
+    private array|string $errors = [];
 
     /**
      * Costruttore.
      *
-     * @param array     $errors    Array con gli errori
+     * @param array<string,string>|string     $errors    Array con gli errori oppure singolo errore
      * @param string    $message   Messaggio dell'eccezione (Default 'null')
      * @param int       $code      Codice di errore dell'eccezione ( Default 'null')
      * @param Exception $previous  Eccezione precedente (Default 'null')
      */
-    public function __construct( array $errors = [], $message = null, $code = null, \Exception $previous = null ) {
+    public function __construct( array|string $errors = [], $message = null, $code = null, \Exception $previous = null ) {
 
         // Controllo se è settato il messaggio
         $message ??= $this->customMessage;
@@ -59,13 +63,14 @@ class ValidationException extends AbstractCrudException {
     //---------------------------------------------------------------------------
 
     /**
-     * Funzione che restituisce il primo errore
-     * di validazione.
+     * Restituisce il singolo errore di validazione.
+     *
+     * Se gli errori sono contenuti in un array allora viene recuperato il primo
      *
      * @return string
      */
     public function getValidationError() : string {
-        return current($this->errors);
+        return is_string($this->errors) ? $this->errors : current($this->errors);
     }
 
     //---------------------------------------------------------------------------

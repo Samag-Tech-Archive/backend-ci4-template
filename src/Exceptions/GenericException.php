@@ -1,10 +1,12 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per validazione in fase di creazione e modifica dei dati.
+ * Eccezione generica utilizzata per errori generici
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class GenericException extends AbstractCrudException {
+class GenericException extends BaseCrudException {
 
 }

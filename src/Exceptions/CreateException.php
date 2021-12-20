@@ -1,11 +1,13 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per validazione in fase di creazione e modifica dei dati.
+ * Eccezione utilizzata in fase di creazione di risorse e file.
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class CreateException extends AbstractCrudException {
+class CreateException extends BaseCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore

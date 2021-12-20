@@ -1,11 +1,13 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per validazione in fase di creazione e modifica dei dati.
+ * Eccezione utilizzata in caso di risorse non trovate all'interno del DB
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class ResourceNotFoundException extends AbstractCrudException {
+class ResourceNotFoundException extends BaseCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore
