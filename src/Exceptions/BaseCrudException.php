@@ -6,9 +6,10 @@ use Exception;
  * Classe per la gestione delle eccezioni del CRUD
  *
  * @author Alessandro Marotta
+ *
  * @abstract
  */
-abstract class AbstractCrudException extends Exception {
+abstract class BaseCrudException extends Exception {
 
     /**
      * Messaggio di default se non è settato nel costruttore
@@ -49,7 +50,7 @@ abstract class AbstractCrudException extends Exception {
     //-------------------------------------------------------------------------------------------------------
 
     /**
-     * Funzione che restituisce il codice di errore http
+     * Restituisce il codice di errore HTTP
      *
      * @return int
      */

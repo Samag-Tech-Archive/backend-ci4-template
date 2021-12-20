@@ -1,11 +1,13 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per il download dei file
+ * Eccezione utilizzata per le gestione degli errori durante i download di file
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class DownloadException extends AbstractCrudException {
+class DownloadException extends BaseCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore

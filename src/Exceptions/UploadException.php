@@ -1,11 +1,13 @@
 <?php namespace SamagTech\Exceptions;
 
 /**
- * Eccezione per l'upload dei file
+ * Eccezione utilizzata per la gestione di errori durante le fasi di caricamento dei file.
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+ *
+ * @extends \SamagTech\Exceptions\BaseCrudException
  */
-class UploadException extends AbstractCrudException {
+class UploadException extends BaseCrudException {
 
     /**
      * Messaggio di default se non è settato nel costruttore
@@ -20,7 +22,7 @@ class UploadException extends AbstractCrudException {
      * @var string[]
      * @access private
      */
-    private array $errors;
+    private array|string $errors;
 
     //-------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +34,7 @@ class UploadException extends AbstractCrudException {
      * @param int       $code      Codice di errore dell'eccezione ( Default 'null')
      * @param Exception $previous  Eccezione precedente (Default 'null')
      */
-    public function __construct( array $errors = [], $message = null, $code = null, \Exception $previous = null ) {
+    public function __construct( array|string $errors = [], $message = null, $code = null, \Exception $previous = null ) {
 
         // Controllo se è settato il messaggio
         $message ??= $this->customMessage;
