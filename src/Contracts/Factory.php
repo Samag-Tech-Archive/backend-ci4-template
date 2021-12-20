@@ -16,7 +16,7 @@ interface Factory {
      *
      * @param string|null $token    Token che identifica quale servizio istanziare
      *
-     * @throws BadFactoryException  Solleva quest'eccezione se non esiste un servizio di default se il token è null
+     * @throws \SamagTech\Exceptions\BadFactoryException  Solleva quest'eccezione se non esiste un servizio di default se il token è null
      *
      * @return \SamagTech\Crud\Core\Service Restituisce una classe CRUDService
      */

@@ -5,7 +5,7 @@ use \CodeIgniter\HTTP\Response;
 /**
  * Definizione di un controller
  *
- * @extends \SamagTech\Crud\Contracts\Factory
+ * @extends \SamagTech\Contracts\Factory
  * @interface
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
