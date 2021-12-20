@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Contracts;
+<?php namespace SamagTech\Contracts;
 
 use CodeIgniter\Entity\Entity;
 use CodeIgniter\HTTP\IncomingRequest;

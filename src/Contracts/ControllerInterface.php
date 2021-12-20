@@ -1,15 +1,16 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Contracts;
 
 use \CodeIgniter\HTTP\Response;
 
 /**
- * Interfaccia per la definizione delle route principali
- * di un controller CRUD.
+ * Definizione di un controller
  *
- * @author Alessandro Marotta
+ * @extends \SamagTech\Crud\Contracts\Factory
+ * @interface
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
-interface ServiceControllerInterface extends Factory {
+interface ControllerInterface extends Factory {
 
     //--------------------------------------------------------------------------------------------
 

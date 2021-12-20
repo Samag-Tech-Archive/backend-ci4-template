@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Exceptions;
+<?php namespace SamagTech\Exceptions;
 
 /**
  * Eccezione per il download dei file

@@ -10,7 +10,10 @@
     ],
     "autoload": {
         "psr-4": {
-            "SamagTech\\Crud\\" : "src/",
+            "SamagTech\\Contracts\\" : "src/Contracts/",
+            "SamagTech\\Exceptions\\" : "src/Exceptions/",
+            "SamagTech\\Core\\" : "src/Core/",
+            "SamagTech\\Commands\\" : "src/Commands/",
             "SamagTech\\Log\\" : "src/Log/"
         },
         "files" : [

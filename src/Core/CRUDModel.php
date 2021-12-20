@@ -10,7 +10,7 @@ use CodeIgniter\Model;
  *
  *
  */
-class CRUDModel extends Model {
+abstract class CRUDModel extends Model {
 
     /**
      * Gruppo database di default

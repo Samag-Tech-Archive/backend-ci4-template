@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Exceptions;
+<?php namespace SamagTech\Exceptions;
 
 /**
  * Eccezione per validazione in fase di creazione e modifica dei dati.

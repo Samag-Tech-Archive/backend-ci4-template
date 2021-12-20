@@ -1,5 +1,6 @@
 <?php namespace SamagTech\Crud\Core;
 
+use CodeIgniter\Entity\Entity;
 use CodeIgniter\HTTP\IncomingRequest;
 use SamagTech\Crud\Exceptions\ValidationException;
 use SamagTech\Crud\Exceptions\CreateException;
@@ -9,6 +10,7 @@ use SamagTech\Crud\Exceptions\ResourceNotFoundException;
 use SamagTech\Crud\Singleton\CurrentUser;
 use CodeIgniter\I18n\Time;
 use SamagTech\Crud\Config\Application;
+use SamagTech\Crud\Contracts\Service;
 use SamagTech\Crud\Exceptions\GenericException;
 use SamagTech\ExcelLib\Factory as ExcelFactory;
 use SamagTech\ExcelLib\Writer;
@@ -304,7 +306,7 @@ abstract class CRUDService implements Service {
      * {@inheritDoc}
      *
      */
-    public function create(IncomingRequest $request) : array {
+    public function create(IncomingRequest $request) : Entity|array {
 
         // Recupero i dati dalla richiesta
         $data = $request->getJSON(TRUE);
@@ -312,11 +314,11 @@ abstract class CRUDService implements Service {
         // Eseguo il check della validazione
         $this->checkValidation($data,'insert');
 
-        // Callback pre-inserimento
-        $data = $this->preInsertCallback($data);
-
         // Callback per estrarre dati esterni alla riga
         $extraInsert = $this->getExtraData($data);
+
+        // Callback pre-inserimento
+        $data = $this->preInsertCallback($data);
 
         // Inizializzo la transazione
         $this->db->transStart();
@@ -332,9 +334,6 @@ abstract class CRUDService implements Service {
         $id = $this->model->insert($data);
 
         $this->logger->create('create', $id, $data);
-
-        // Se esistono dati extra allora eseguo la callback per gestirli
-        $this->insertCallback($extraInsert);
 
         // Callback post-inserimento
         $this->postInsertCallback($id,$data,$extraInsert);
@@ -404,9 +403,6 @@ abstract class CRUDService implements Service {
         }
 
         // Callback per la modifica della lista
-        $data = $this->retrieveCallback($data, ! is_null($id));
-
-        // Callback per la modifica della lista
         $data = $this->postRetrieveCallback($data, ! is_null($id));
 
         return $data;
@@ -418,7 +414,7 @@ abstract class CRUDService implements Service {
      * {@inheritDoc}
      *
      */
-    public function update(IncomingRequest $request, int $id) : bool {
+    public function update(IncomingRequest $request, int|string $id) : bool {
 
         // Controllo se la risorsa esiste
         if  ( is_null($oldData = $this->model->find($id)) ) {
@@ -454,9 +450,6 @@ abstract class CRUDService implements Service {
 
         // Check per il logger
         $this->logger->create('update', $id, $oldData, $data);
-
-        // Se esistono dati extra allora eseguo la callback per gestirli
-        $this->updateCallback($id,$extraUpdate);
 
         // Callback post-modifica
         $this->postUpdateCallback($id, $data, $extraUpdate);
@@ -495,9 +488,6 @@ abstract class CRUDService implements Service {
 
         // Check per il logger
         $this->logger->create('delete', $id, $oldData);
-
-        // Callback per ulteriori azioni di cancellazione
-        $this->deleteCallback($id, $oldData);
 
         // Callback per ulteriori azioni post cancellazione
         $this->postDeleteCallback($id, $oldData);
@@ -615,28 +605,13 @@ abstract class CRUDService implements Service {
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * Callback per la gestione dell'inserimento dei dati extra
+     * Callback eseguita prima dell'inserimento
      *
-     * @param array $data   Array con i dati extra da inserire
+     * @param Entity|array<string,mixed> $data  Contiene i dati da inserire
      *
-     * @return void
-     *
-     * @deprecated  utilizzare postInsertCallback
+     * @return Entity|array<string,mixed>
      */
-    protected function insertCallback( array $data ) : void  {}
-
-    //----------------------------------------------------------------------------------------------------
-
-
-    /**
-     * Callback eseguita pre inserimento dei dati
-     *
-     * @param array $data   Array con i dati da inserire
-     * lla riga inserita
-     * @param array $data       Array con i dati
-     * @return array
-     */
-    protected function preInsertCallback( array $data ) : array  {
+    protected function preInsertCallback(Entity|array $data ) : Entity|array  {
         return $data;
     }
 
@@ -646,13 +621,13 @@ abstract class CRUDService implements Service {
     /**
      * Callback eseguita post inserimento dei dati
      *
-     * @param int   $id         Identificativo della riga inserita
-     * @param array $data       Array con i dati da inserire
-     * @param array $extraData  Array che contiene i dati extra se ci sono( Default = [])
+     * @param int|string   $id         Identificativo della riga inserita
+     * @param Entity|array $data       Contiene i dati inseriti
+     * @param array        $extraData  Array che contiene i dati extra se ci sono( Default = [])
      *
      * @return void
      */
-    protected function postInsertCallback( int $id, array $data, array $extraData = []) : void  {}
+    protected function postInsertCallback(int|string $id, Entity|array $data, array $extraData = []) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
@@ -660,12 +635,12 @@ abstract class CRUDService implements Service {
     /**
      * Callback eseguita pre modifica dei dati
      *
-     * @param int   $id     Identificativo della riga da modificare
-     * @param array $data   Array con i dati per la modifica
+     * @param int|string   $id     Identificativo della riga da modificare
+     * @param Entity|array $data   Contiene i dati per la modifica
      *
      * @return array
      */
-    protected function preUpdateCallback( int $id, array $data ) : array  {
+    protected function preUpdateCallback(int|string $id, Entity|array $data ) : Entity|array  {
         return $data;
     }
 
@@ -674,9 +649,9 @@ abstract class CRUDService implements Service {
     /**
      * Callback eseguita post modifica dei dati
      *
-     * @param int   $id         Identificativo della riga inserita
-     * @param array $data       Array con i dati extra da inserire
-     * @param array $extraData  Array che contiene i dati extra se ci sono( Default = [])
+     * @param int|string    $id         Identificativo della riga inserita
+     * @param Entity|array  $data       Contiene i dati modificati
+     * @param array         $extraData  Array che contiene i dati extra se ci sono( Default = [])
      *
      * @return void
      */
@@ -685,42 +660,14 @@ abstract class CRUDService implements Service {
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * Callback per la gestione delle modifiche dei dati extra
-     *
-     * @param array $id     Identificativo della risorsa modificata
-     * @param array $data   Array con i dati extra da inserire
-     *
-     * @return void
-     *
-     * @deprecated  utilizzare postUpdateCallback
-     */
-    protected function updateCallback( int $id, array $data ) : void  {}
-
-    //---------------------------------------------------------------------------------------------------
-
-    /**
      * Callback eseguita pre cancellazione dei dati
      *
-     * @param int   $id     Identificativo della riga da cancellare
-     * @param array $data   Array con i dati per della riga da cancellare
+     * @param int|string   $id     Identificativo della riga da cancellare
+     * @param Entity|array $data   Contiene i dati c
      *
      * @return void
      */
     protected function preDeleteCallback( int $id, array $data ) : void  {}
-
-    //----------------------------------------------------------------------------------------------------
-
-    /**
-     * Callback per la gestione delle modifiche dei dati extra
-     *
-     * @param int   $id     Identificativo risorsa cancellata
-     * @param array $data   Dati della risorsa cancellata
-     *
-     * @return void
-     *
-     * @deprecated  utilizzare postDeleteCallback
-     */
-    protected function deleteCallback( int $id, array $data ) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
@@ -746,22 +693,6 @@ abstract class CRUDService implements Service {
      */
     protected function preRetrieveCallback(array $options, array &$params ) : array {
         return $options;
-    }
-
-    //---------------------------------------------------------------------------------------------------
-
-    /**
-     * Callback per la gestione della lista post-query
-     *
-     * @param array $data               Lista dei dati estratti
-     * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
-     *
-     * @return array
-     *
-     * @deprecated  utilizzare postRetrieveCallback
-     */
-    protected function retrieveCallback( array $data, bool $isSingleResource = false ) : array  {
-        return $data;
     }
 
     //---------------------------------------------------------------------------------------------------
