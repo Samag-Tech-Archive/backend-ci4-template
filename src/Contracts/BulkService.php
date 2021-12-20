@@ -19,9 +19,9 @@ interface BulkService {
      *
      * @param  IncomingRequest $request      Dati della richiesta
      *
-     * @throws ValidationException   Solleva questa eccezione se è fallita la validazione
-     * @throws CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
-     * @throws GenericException      Solleva quest'eccezione se c'è stato un errore generico
+     * @throws \SamagTech\Exceptions\ValidationException   Solleva questa eccezione se è fallita la validazione
+     * @throws \SamagTech\Exceptions\CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
+     * @throws \SamagTech\Exceptions\GenericException      Solleva quest'eccezione se c'è stato un errore generico
      *
      * @return array<int,array<string,mixed>>  Ritorna l'array contente tutti i dati inseriti
      */
@@ -34,10 +34,10 @@ interface BulkService {
      *
      * @param  IncomingRequest $request      Dati della richiesta
      *
-     * @throws UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
-     * @throws ValidationException           Solleva questa eccezione se è fallita la validazione
-     * @throws ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
-     * @throws GenericException              Solleva quest'eccezione se c'è stato un errore generico
+     * @throws \SamagTech\Exceptions\UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
+     * @throws \SamagTech\Exceptions\ValidationException           Solleva questa eccezione se è fallita la validazione
+     * @throws \SamagTech\Exceptions\ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
+     * @throws \SamagTech\Exceptions\GenericException              Solleva quest'eccezione se c'è stato un errore generico
      *
      * @return bool  Ritorna TRUE se la risorsa è stata modifica, FALSE altrimenti
      */
@@ -50,9 +50,9 @@ interface BulkService {
      *
      * @param  IncomingRequest $request      Dati della richiesta
      *
-     * @throws DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
-     * @throws ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
-     * @throws GenericException              Solleva quest'eccezione se c'è stato un errore generico
+     * @throws \SamagTech\Exceptions\DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
+     * @throws \SamagTech\Exceptions\ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
+     * @throws \SamagTech\Exceptions\GenericException              Solleva quest'eccezione se c'è stato un errore generico
      *
      * @return bool  Ritorna TRUE se la risorsa è stata cancellata, FALSE altrimenti
      */
