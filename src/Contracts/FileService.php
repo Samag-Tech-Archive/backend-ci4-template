@@ -1,23 +1,26 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Crud\Contracts;
 
 use CodeIgniter\HTTP\IncomingRequest;
 
 /**
- * Definizione dell'interfaccia per l'upload e il download di file
+ * Definizione dell'interfaccia per la gestione di file
+ * tramite DB
  *
  * @interface
  *
- * @author Alessandro Marotta
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  */
 interface FileService {
 
     //-----------------------------------------------------------------------
 
     /**
-     * Funzione per l'uploads di uno o più file
+     * Gestione l'upload di uno o più file.
+     *
+     * Se è presente la risorsa, allora collega questi file alla risorsa
      *
      * @param IncomingRequest $request      Dati della richiesta
-     * @param int             $resourceId   Identificativo a cui sono legati i file
+     * @param int|string|null $resourceID   Identificativo della risorsa a cui legare i file (Opzionali)
      *
      * @throws ValidationException          Solleva questa eccezione se è fallita la validazione
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste quando l'id è diverso da null
@@ -25,46 +28,44 @@ interface FileService {
      *
      * @return bool     TRUE se l'upload è stato effettuato con successo, FALSE altrimenti
      */
-    public function uploads(IncomingRequest $request, ?int $resourceID = null) : bool;
+    public function uploads(IncomingRequest $request, int|string|null $resourceID = null) : bool;
 
     //-----------------------------------------------------------------------
 
     /**
-     * Funzione per il download di un file.
+     * Gestione del download di un singolo file.
      *
-     * @param IncomingRequest $request      Dati della richiesta
-     * @param int             $fileId       Identificativo del file da scaricare
+     * @param int|string      $fileID   Identificativo del file da scaricare
      *
      * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
      *
-     * @return array    Contiene il path per il download e il nome originale del file
+     * @return array|string    Se è un array contiene i dati per il download, altrimenti se è una stringa il path per il download
      */
-    public function download(IncomingRequest $request, int $fileID ) : array;
+    public function download(int|string $fileID) : array|string;
 
     //-----------------------------------------------------------------------
 
     /**
-     * Funzione per
+     * Gestione della cancellazione di un singolo file
      *
-     * @param IncomingRequest $request      Dati della richiesta
-     * @param int             $fileId       Identificativo file da cancellare
+     * @param int|string    $fileID     Identicativo del file da cancellare
      *
      * @throws DeleteException              Solleva quest'eccezione se c'è stato un errore durante la cancellazione del file
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste quando l'id è diverso da null
      *
      * @return bool     TRUE se la cancellazione è stata effettuata con successo, FALSE altrimenti
      */
-    public function deleteFile(IncomingRequest $request, int $fileID) : bool;
+    public function deleteFile(IncomingRequest $request, int|string $fileID) : bool;
 
 
     //-----------------------------------------------------------------------
 
     /**
-     * Funzione per il download di tutti i file legati ad una risorsa
+     * Gestione download di tutti i file legati ad una singola risorsa
      *
      * @param IncomingRequest $request      Dati della richiesta
-     * @param int             $resourceId   Identificativo della risorsa a cui sono legati i file
+     * @param int|string      $resourceID   Identificativo della risorsa
      *
      *
      * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
@@ -72,14 +73,14 @@ interface FileService {
      *
      * @return string   Path del file
      */
-    public function downloadAllByResource(IncomingRequest $request, int $resourceID) : string;
+    public function downloadAllByResource(IncomingRequest $request, int|string $resourceID) : string;
 
     //-----------------------------------------------------------------------
 
     /**
-     * Funzione per il download di più file
+     * Gestione download di una lista di file
      *
-     * @param IncomingRequest   $request    Dati della richiesta
+     * @param IncomingRequest   $request    Dati della richiesta(Dovrà contenere tutti gli identificativi dei file da scaricare)
      *
      * @throws DownloadException            Solleva quest'eccezione se c'è stato un errore il download
      * @throws ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
