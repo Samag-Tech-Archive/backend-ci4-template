@@ -1,6 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
-
-use SamagTech\Crud\Contracts\Service;
+<?php namespace SamagTech\Contracts;
 
 /**
  * Definizione di un interfaccia per l'applicazione
