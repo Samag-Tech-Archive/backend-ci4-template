@@ -6,7 +6,9 @@ use \CodeIgniter\HTTP\Response;
  * Definizione di un controller
  *
  * @extends \SamagTech\Contracts\Factory
+ *
  * @interface
+ *
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
@@ -15,7 +17,7 @@ interface ControllerInterface extends Factory {
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la creazione di una nuova risorsa
+     * Route per la creazione di una nuova risorsa.
      *
      * @return \CodeIgniter\HTTP\Response
      */
@@ -24,40 +26,49 @@ interface ControllerInterface extends Factory {
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la lettura dei dati di una o più risorse
-     *
-     * @param int $id   Identificativo della singola risorsa ( Default 'null')
+     * Route per la visualizzazione di una lista di risorse
      *
      * @return \CodeIgniter\HTTP\Response
      */
-    public function retrieve(int $id = null) : Response;
+    public function retrieve() : Response;
 
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la modifica di una risorsa
+     * Route per la visualizzazione di una singola risorsa.
      *
-     * @param int $id   Identificativo della risorsa da modifica
+     * @param int|string $id   Identificativo risorsa.
      *
      * @return \CodeIgniter\HTTP\Response
      */
-    public function update(int $id ) : Response;
+    public function retrieveById(int|string $id) : Response;
 
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la cancellazione di una risorsa
+     * Route per la modifica di una risorsa.
      *
-     * @param int $id  Identificativo della risorsa da cancellare
+     * @param int|string $id   Identificativo risorsa.
      *
      * @return \CodeIgniter\HTTP\Response
      */
-    public function delete(int $id) : Response;
+    public function update(int|string $id) : Response;
+
+    //--------------------------------------------------------------------------------------------
+
+    /**
+     * Route per la cancellazione di una risorsa.
+     *
+     * @param int|string $id  Identificativo risorsa
+     *
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function delete(int|string $id) : Response;
 
     //---------------------------------------------------------------------------------------------------
 
     /**
-     * Route per l'esportazione excel della lista
+     * Route per l'esportazione excel della lista risorse
      *
      * @return  \CodeIgniter\HTTP\Response
      */
