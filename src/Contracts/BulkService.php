@@ -17,7 +17,7 @@ interface BulkService {
     /**
      * Creazione bulk delle risorse
      *
-     * @param  IncomingRequest $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\ValidationException   Solleva questa eccezione se è fallita la validazione
      * @throws \SamagTech\Exceptions\CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
@@ -32,7 +32,7 @@ interface BulkService {
     /**
      * Modifica bulk di risorse
      *
-     * @param  IncomingRequest $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
      * @throws \SamagTech\Exceptions\ValidationException           Solleva questa eccezione se è fallita la validazione
@@ -48,7 +48,7 @@ interface BulkService {
     /**
      * Cancellazione bulk di risorse.
      *
-     * @param  IncomingRequest $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
      * @throws \SamagTech\Exceptions\ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste

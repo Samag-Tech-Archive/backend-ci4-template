@@ -10,7 +10,7 @@ use \CodeIgniter\HTTP\Response;
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
-interface BulkServiceControllerInterface {
+interface BulkServiceController {
 
     //--------------------------------------------------------------------------------------------
 

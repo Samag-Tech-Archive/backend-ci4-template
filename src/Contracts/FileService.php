@@ -19,7 +19,7 @@ interface FileService {
      *
      * Se è presente la risorsa, allora collega questi file alla risorsa
      *
-     * @param IncomingRequest $request      Dati della richiesta
+     * @param CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      * @param int|string|null $resourceID   Identificativo della risorsa a cui legare i file (Opzionali)
      *
      * @throws \SamagTech\Exceptions\ValidationException          Solleva questa eccezione se è fallita la validazione
@@ -56,7 +56,7 @@ interface FileService {
      *
      * @return bool     TRUE se la cancellazione è stata effettuata con successo, FALSE altrimenti
      */
-    public function deleteFile(IncomingRequest $request, int|string $fileID) : bool;
+    public function deleteFile(int|string $fileID) : bool;
 
 
     //-----------------------------------------------------------------------
@@ -64,7 +64,7 @@ interface FileService {
     /**
      * Gestione download di tutti i file legati ad una singola risorsa
      *
-     * @param IncomingRequest $request      Dati della richiesta
+     * @param CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      * @param int|string      $resourceID   Identificativo della risorsa
      *
      *
@@ -80,7 +80,7 @@ interface FileService {
     /**
      * Gestione download di una lista di file
      *
-     * @param IncomingRequest   $request    Dati della richiesta(Dovrà contenere tutti gli identificativi dei file da scaricare)
+     * @param CodeIgniter\HTTP\IncomingRequest   $request    Dati della richiesta(Dovrà contenere tutti gli identificativi dei file da scaricare)
      *
      * @throws \SamagTech\Exceptions\DownloadException            Solleva quest'eccezione se c'è stato un errore il download
      * @throws \SamagTech\Exceptions\ResourceNotFoundException    Solleva quest'eccezione se la risorsa non esiste
