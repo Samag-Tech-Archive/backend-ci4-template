@@ -1,6 +1,6 @@
 <?php
 
-namespace SamagTech\Crud\Core;
+namespace SamagTech\Core;
 
 use CodeIgniter\Database\Migration;
 
@@ -11,7 +11,7 @@ use CodeIgniter\Database\Migration;
  * @method addFieldsAccessories(array $fields) : array   Aggiunge i dati accessori alla classe
  *
  */
-abstract class MyMigrations extends Migration {
+abstract class BaseMigration extends Migration {
 
     /**
      * Flag che indica se creare la colonna created_date

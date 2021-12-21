@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
 use CodeIgniter\Controller as Controller;
 use \CodeIgniter\HTTP\Response as Response;
@@ -20,7 +20,7 @@ use SamagTech\ExcelLib\ExcelException;
  * @extends Controller
  * @abstract
  */
-abstract class ServiceController extends Controller implements ServiceControllerInterface {
+abstract class BaseController extends Controller implements ServiceControllerInterface {
 
     use ResponseTrait, CrudTrait;
 

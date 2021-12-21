@@ -21,7 +21,7 @@ interface Service {
      * @throws \SamagTech\Exceptions\CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
      * @throws \SamagTech\Exceptions\GenericException      Solleva quest'eccezione se c'è stato un errore generico
      *
-     * @return Entity|array<string,mixed> Ritorna i dati della risorsa appaena Creata
+     * @return CodeIgniter\Entity\Entity|array<string,mixed> Ritorna i dati della risorsa appaena Creata
      */
     public function create(IncomingRequest $request) : Entity|array;
 
@@ -34,7 +34,7 @@ interface Service {
      *
      * @throws \SamagTech\Exceptions\GenericException          Solleva quest'eccezione se c'è stato un errore generico
      *
-     * @return array<string,mixed>|Entity[]
+     * @return array<string,mixed>|CodeIgniter\Entity\Entity[]
      */
     public function retrieve(IncomingRequest $request) : array;
 
@@ -48,7 +48,7 @@ interface Service {
      * @throws \SamagTech\Exceptions\ResourceNotFountException Solleva questa eccezione se la risorsa non esiste.
      * @throws \SamagTech\Exceptions\GenericException          Solleva quest'eccezione se c'è stato un errore generico
      *
-     * @return Entity|array<string,mixed>
+     * @return CodeIgniter\Entity\Entity|array<string,mixed>
      */
     public function retrieveById(int|string $id) : Entity|array;
 
