@@ -1,20 +1,13 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
+use Psr\Log\LoggerInterface;
+use SamagTech\Core\BaseModel;
 use CodeIgniter\Entity\Entity;
+use SamagTech\Contracts\Service;
 use CodeIgniter\HTTP\IncomingRequest;
-use SamagTech\Crud\Exceptions\ValidationException;
-use SamagTech\Crud\Exceptions\CreateException;
-use SamagTech\Crud\Exceptions\UpdateException;
-use SamagTech\Crud\Exceptions\DeleteException;
-use SamagTech\Crud\Exceptions\ResourceNotFoundException;
+use SamagTech\Crud\Config\BaseAppConfig;
 use SamagTech\Crud\Singleton\CurrentUser;
-use CodeIgniter\I18n\Time;
-use SamagTech\Crud\Config\Application;
-use SamagTech\Crud\Contracts\Service;
-use SamagTech\Crud\Exceptions\GenericException;
-use SamagTech\ExcelLib\Factory as ExcelFactory;
-use SamagTech\ExcelLib\Writer;
-use SamagTech\Log\Libraries\Log;
+use SamagTech\Exceptions\CreateException;
 
 /**
  * Classe astratta che implementa i servizi CRUD di default
@@ -22,13 +15,13 @@ use SamagTech\Log\Libraries\Log;
  * @implements Service
  * @author Alessandro Marotta
  */
-abstract class CRUDService implements Service {
+abstract class BaseService implements Service {
 
     /**
      * Array con gli helpers da precaricare
      *
      *
-     * @var array
+     * @var array<int,string>
      * @access protected
      */
     protected array $helpers = [
@@ -46,7 +39,7 @@ abstract class CRUDService implements Service {
      * 'insert' → Verrà utilizzata solo in create
      * 'update' → Verrà utilizzata solo in update
      *
-     * @var array
+     * @var array<string,array<string,string>>
      * @access protected
      */
     protected array $validationsRules = [];
@@ -56,7 +49,7 @@ abstract class CRUDService implements Service {
      *
      * L'array deve contenere TIPO_VALIDAZIONE -> MESSAGGIO
      *
-     * @var array
+     * @var array<string,array<string,string>>
      * @access protected
      */
     protected array $validationsCustomMessage = [];
@@ -73,15 +66,15 @@ abstract class CRUDService implements Service {
     /**
      * Modello principale
      *
-     * @var CRUDModel
+     * @var \SamagTech\Core\BaseModel|null
      * @access protected
      */
-    protected ?CRUDModel $model = null;
+    protected ?BaseModel $model = null;
 
     /**
      * Lista contentente la clausola per la select
      *
-     * @var array
+     * @var array<int,string>
      * @access protected
      * Default []
      */
@@ -90,7 +83,7 @@ abstract class CRUDService implements Service {
     /**
      * Lista contenente le clausole per i join
      *
-     * @var array
+     * @var array<int,array<int,string>>|null
      * @access protected
      * Default null
      */
@@ -99,7 +92,7 @@ abstract class CRUDService implements Service {
     /**
      * Lista contenente le clausole where di base
      *
-     * @var array
+     * @var array<string,string>|null
      * @access protected
      * Default null
      */
@@ -108,7 +101,7 @@ abstract class CRUDService implements Service {
     /**
      * Lista contenente le clausole group by di base
      *
-     * @var array
+     * @var array<int,string>|null
      * @access protected
      * Default null
      */
@@ -121,7 +114,7 @@ abstract class CRUDService implements Service {
      *
      * @var int
      * @access protected
-     * Default 50
+     * Default 25
      */
     protected int $retriveLimit = 25;
 
@@ -137,9 +130,11 @@ abstract class CRUDService implements Service {
     /**
      * Clausola per l'ordinamento di default
      *
-     * @var array
+     * @var array<int,string>
+     *
      * @access protected
-     * Default 'id'
+     *
+     * Default 'id:desc'
      */
     protected array $retrieveSortBy = ['id:desc'];
 
@@ -151,7 +146,7 @@ abstract class CRUDService implements Service {
      *
      * Es. employee_name => E.name dove E è l'alias della tabella
      *
-     * @var array
+     * @var array<string,string>
      * @access protected
      * Default []
      */
@@ -165,7 +160,7 @@ abstract class CRUDService implements Service {
      *
      * Es. employee_name => E.name dove E è l'alias della tabella
      *
-     * @var array
+     * @var array<string,string>
      * @access protected
      * Default []
      */
@@ -226,24 +221,17 @@ abstract class CRUDService implements Service {
      * @var array
      * @access protected
      *
-     * Default ['id' ]
+     * Default ['id']
      */
     protected array $exportDeleteColumns = ['id'];
 
     /**
-     * Istanza del database
-     *
-     * @var BaseConnection
-     */
-    protected $db;
-
-    /**
      * Configurazione Applicazione
      *
-     * @var Application
+     * @var \SamagTech\Crud\Config\BaseAppConfig
      * @access protected
      */
-    protected Application $appConfig;
+    protected BaseAppConfig $appConfig;
 
     /**
      * Dati utente loggato
@@ -254,12 +242,12 @@ abstract class CRUDService implements Service {
     protected ?object $currentUser;
 
     /**
-     * Libreria per il logger
+     * Logger dell'applicativo
      *
-     * @var Log
+     * @var Psr\Log\LoggerInterface
      * @access protected
      */
-    protected Log $logger;
+    protected ?LoggerInterface $logger = null;
 
     /**
      * Flag per l'attivazione del logger
@@ -270,17 +258,42 @@ abstract class CRUDService implements Service {
      */
     protected bool $activeCrudLogger = true;
 
+    /**
+     * Indica se in questo servizio vengono
+     * utilizzati gli array oppure le entità
+     *
+     * @var bool
+     * @access protected
+     *
+     * Default False
+     */
+    protected bool $useEntity = false;
+
+    /**
+     * Indica l'entità che verrà utilizzata
+     * nel caso il modello restituisca l'entità
+     *
+     * @var CodeIgniter\Entity\Entity|null
+     *
+     * @access protected
+     *
+     */
+    protected ?Entity $entity = null;
 
     //---------------------------------------------------------------------------------
 
     /**
      *  Costruttore.
      *
+     * @param Psr\Log\LoggerInterface|null $logger  Logger dell'applicazione
+     *
      */
-    public function __construct() {
+    public function __construct(?LoggerInterface $logger = null) {
 
         // Carico tutti gli helpers necessari
         helper($this->helpers);
+
+        $this->logger = $logger;
 
         $this->appConfig = config('Application');
 
@@ -294,7 +307,7 @@ abstract class CRUDService implements Service {
             die('Il modello non è settato');
         }
         else {
-            $this->model = model($this->modelName);
+            $this->model = new $this->modelName;
         }
 
         // Istanzio la classe del database per usare le transazioni
@@ -303,8 +316,16 @@ abstract class CRUDService implements Service {
         // Setto i dati dell'utente loggato
         $this->currentUser = CurrentUser::getIstance()->getProperty();
 
+        // Imposta l'entità
+        $modelReturnType = $this->model->getReturnType();
+
+        if ( ! in_array($modelReturnType, ['array', 'object']) ) {
+            $this->entity = $modelReturnType;
+            $this->useEntity = true;
+        }
+
         // Inizializzo la libreria di log
-        $this->logger = new Log($this->model->getTable(), $this, CurrentUser::getIstance() ?? null);
+        // $this->logger = new Log($this->model->getTable(), $this, CurrentUser::getIstance() ?? null);
 
     }
 
@@ -325,29 +346,39 @@ abstract class CRUDService implements Service {
         // Callback per estrarre dati esterni alla riga
         $extraInsert = $this->getExtraData($data);
 
+        // Se il tipo di ritorno non è un array allora è un entità
+        if ( $this->useEntity ) {
+            $data = (new $this->entity)->fill($data);
+        }
+
         // Callback pre-inserimento
         $data = $this->preInsertCallback($data);
 
         // Inizializzo la transazione
-        $this->db->transStart();
+        $this->model->transStart();
 
         // Se è impostato la colonna created_by aggiungo l'utente corrente
         if ( $this->model->useCreatedBy ) {
-            $data = array_merge($data, [
-                'created_by' => $this->currentUser->id,
-            ]);
+
+            if ( $this->useEntity ) {
+                $data->created_by = $this->currentUser->id;
+            }
+            else {
+                $data['created_by'] = $this->currentUser->id;
+            }
+
         }
 
         // Inserisco i dati
         $id = $this->model->insert($data);
 
-        $this->logger->create('create', $id, $data);
+        // $this->logger->create('create', $id, $data);
 
         // Callback post-inserimento
         $this->postInsertCallback($id,$data,$extraInsert);
 
         // Termino la transazione
-        $this->db->transComplete();
+        $this->model->transComplete();
 
         // Se la transazione è fallita sollevo un eccezione
         if ( $this->db->transStatus() === FALSE ) {

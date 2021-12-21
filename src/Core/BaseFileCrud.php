@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
 use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\HTTP\IncomingRequest;
@@ -16,7 +16,7 @@ use \ZipArchive;
  * @implements Service
  * @author Alessandro Marotta
  */
-abstract class CRUDFileService extends CRUDService implements FileService {
+abstract class BaseFileCrud extends CRUDService implements FileService {
 
     /**
      * Stringa contentente il nome del modello

@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
 use CodeIgniter\Controller as Controller;
 use \CodeIgniter\HTTP\Response as Response;
@@ -19,7 +19,7 @@ use SamagTech\Crud\Traits\CrudTrait;
  * @extends Controller
  * @abstract
  */
-abstract class BulkServiceController extends ServiceController implements BulkServiceControllerInterface {
+abstract class BaseBulkController extends ServiceController implements BulkServiceControllerInterface {
 
     /**
      * Array contenente i messaggi di default

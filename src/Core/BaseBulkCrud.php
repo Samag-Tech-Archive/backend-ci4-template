@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\I18n\Time;
@@ -15,7 +15,7 @@ use SamagTech\Crud\Exceptions\UpdateException;
  * @abstract
  * @author Alessandro Marotta
  */
-abstract class CRUDBulkService extends CRUDService implements BulkService {
+abstract class BaseBulkCrud extends CRUDService implements BulkService {
 
     /**
      * Chiave per accedere ai dati da inserire in modo bulk

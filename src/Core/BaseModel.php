@@ -1,6 +1,6 @@
 <?php
 
-namespace SamagTech\Crud\Core;
+namespace SamagTech\Core;
 
 use CodeIgniter\Model;
 
@@ -10,7 +10,7 @@ use CodeIgniter\Model;
  *
  *
  */
-abstract class CRUDModel extends Model {
+abstract class BaseModel extends Model {
 
     /**
      * Gruppo database di default

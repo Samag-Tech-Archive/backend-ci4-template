@@ -18,7 +18,7 @@ interface Factory {
      *
      * @throws \SamagTech\Exceptions\BadFactoryException  Solleva quest'eccezione se non esiste un servizio di default se il token è null
      *
-     * @return \SamagTech\Crud\Core\Service Restituisce una classe CRUDService
+     * @return \SamagTech\Contracts\Service Restituisce una classe CRUDService
      */
     public function makeService( ?string $token = null) : Service;
 

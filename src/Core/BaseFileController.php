@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Core;
+<?php namespace SamagTech\Core;
 
 use SamagTech\Crud\Exceptions\CreateException;
 use SamagTech\Crud\Exceptions\DeleteException;
