@@ -2,7 +2,15 @@
 
 use CodeIgniter\Config\BaseConfig;
 
-class Application extends BaseConfig {
+/**
+ * Configurazione di base del CRUD
+ *
+ * @abstract
+ * @extends \CodeIgniter\Config\BaseConfig
+ *
+ * @author Alessandro Marotta <alessandro.marotta@samag.tech>
+*/
+abstract class BaseAppConfig extends BaseConfig {
 
     /**
      * Flag per attivare e disabilitare il logging
