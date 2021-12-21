@@ -12,7 +12,7 @@ use \CodeIgniter\HTTP\Response;
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
-interface ControllerInterface extends Factory {
+interface ControllerFactory extends Factory {
 
     //--------------------------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
  *
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  */
-interface FileModelInterface {
+interface FileModel {
 
     //---------------------------------------------------------------------------------
 

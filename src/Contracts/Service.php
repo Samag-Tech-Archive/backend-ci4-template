@@ -15,7 +15,7 @@ interface Service {
     /**
      * Crea una nuova risorsa.
      *
-     * @param  IncomingRequest $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\ValidationException   Solleva questa eccezione se è fallita la validazione
      * @throws \SamagTech\Exceptions\CreateException       Solleva quest'eccezione se c'è stato un errore durante la creazione
@@ -30,7 +30,7 @@ interface Service {
     /**
      * Restituisce una lista di risorse.
      *
-     * @param  IncomingRequest $request    Dati di parametri e filtri
+     * @param  CodeIgniter\HTTP\IncomingRequest $request    Dati di parametri e filtri
      *
      * @throws \SamagTech\Exceptions\GenericException          Solleva quest'eccezione se c'è stato un errore generico
      *
@@ -58,7 +58,7 @@ interface Service {
      * Modifica una risorsa esistente in base all'identificativo
      *
      * @param  int|string       $id           Identificativo della risorsa
-     * @param  IncomingRequest  $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest  $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\UpdateException               Solleva quest'eccezione se c'è stato un errore durante la modifica
      * @throws \SamagTech\Exceptions\ValidationException           Solleva questa eccezione se è fallita la validazione
@@ -75,7 +75,7 @@ interface Service {
      * Cancella la risorsa in base all'identificativo
      *
      * @param  int|string      $id           Identificativo della risorsa
-     * @param  IncomingRequest $request      Dati della richiesta
+     * @param  CodeIgniter\HTTP\IncomingRequest $request      Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\DeleteException               Solleva quest'eccezione se c'è stato un errore durante la cancellazione
      * @throws \SamagTech\Exceptions\ResourceNotFoundException     Solleva questa eccezione se la risorsa non esiste
@@ -90,7 +90,7 @@ interface Service {
     /**
      * Esportazione della lista in formato Excel
      *
-     * @param IncomingRequest $request   Dati della richiesta
+     * @param CodeIgniter\HTTP\IncomingRequest $request   Dati della richiesta
      *
      * @throws \SamagTech\Exceptions\ExcelException solleva quest'eccezione in caso di fallimento della creazione dell'excel
      *
