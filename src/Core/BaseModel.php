@@ -2,6 +2,8 @@
 
 namespace SamagTech\Core;
 
+use CodeIgniter\Entity\Entity;
+use Ramsey\Uuid\Uuid;
 use CodeIgniter\Model;
 
 /**
@@ -116,13 +118,25 @@ abstract class BaseModel extends Model {
     protected  $deletedField  = 'deleted_date';
 
     /**
+     * Tipologia identificativo
+     *
+     * @var string
+     *
+     * @access protected
+     *
+     * Default 'int'
+     */
+    protected string $typeId = 'int';
+
+    /**
      * Identificativo corrente assegnato
      *
-     * @var integer
+     * @var int|string|null
+     *
      * Default NULL
      * @access private
      */
-    private ?int $id = null;
+    private int|string|null $id = null;
 
     /**
      * Flag che indica se recuperare anche le righe cancellate.
@@ -189,9 +203,10 @@ abstract class BaseModel extends Model {
     //----------------------------------------------------------------------
 
     /**
-     * Funzione per settare l'identificativo
+     * Imposta l'identificativo
      *
-     * @param integer $id   Identificativo
+     * @param int|string $id   Identificativo
+     *
      * @return self
      */
     public function setId($id) : self {
@@ -202,11 +217,11 @@ abstract class BaseModel extends Model {
     //----------------------------------------------------------------------
 
     /**
-     * Funzione per la restituizione dell'identificativo corrente
+     * Restituisce identificativo corrente
      *
-     * @return int
+     * @return int|string|null
      */
-    public function getId() : int {
+    public function getId() : int|string|null {
         return $this->id;
     }
 
@@ -271,6 +286,7 @@ abstract class BaseModel extends Model {
      * Funzione che restituisce TRUE se la riga esiste, FALSE altrimenti
      * in base all'identificativo.
      *
+     * @deprecated Utilizzare find()
      * @param int $id   Identificativo da cercare
      * @return bool
      */
@@ -308,18 +324,7 @@ abstract class BaseModel extends Model {
             $identifyTable = $this->alias;
         }
 
-        // Costruisco la query con le opzioni
-        if ( ! empty($options['select'])) {
-
-            // Per ogni campo della select se non esiste un alias, viene inserito quello della tabella
-            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $identifyTable.'.'.$elem : $elem);
-
-            $this->select('SQL_CALC_FOUND_ROWS ' . implode(',', $options['select']), FALSE);
-        }
-        else {
-            // Select per calcolare anche il numero di righe totali
-            $this->select('SQL_CALC_FOUND_ROWS *', FALSE);
-        }
+        $this->select(BaseModelHandler::getSelect($identifyTable, $options['select']), false);
 
         // Opzione per le clausole where non mutabili
         if ( ! is_null($options['where'])) {
@@ -335,7 +340,7 @@ abstract class BaseModel extends Model {
 
         // Eventuali group by
         if ( ! is_null($options['group_by'])) {
-            $this->groupBy(implode(',', $options['group_by']));
+            $this->groupBy(BaseModelHandler::getGroupBy($options['group_by']));
         }
 
         // L'orientamento è dato dal [Campo][Divisore Campo-Ordinamento '.' ][Verso ordinamento]
@@ -442,15 +447,6 @@ abstract class BaseModel extends Model {
             }
         }
 
-
-
-        // Controllo se è settato l'identificativo univoco, nel caso restituisco un solo array
-        if ( ! is_null($options['item_id']) ){
-
-            return $this->where($identifyTable . '.id',$options['item_id'])->first();
-
-        }
-
         // Se il flag della paginazione è attivo restituisco tutti i dati
         if ( $options['no_pagination'] ) {
             return $this->findAll();
@@ -465,12 +461,87 @@ abstract class BaseModel extends Model {
     //---------------------------------------------------------------------
 
     /**
+     * Restituisce i dati di un singola singola risorsa in base ai parametri passati
+     *
+     * @param int|string        $id         Identificativo risorsa
+     * @param array<int,string> $select     Clausola della select (Default [])
+     * @param array|null        $joins      Array di join (Default NULL)
+     *
+     * @return Entity|array<string,mixed>
+     */
+    public function getWithId (int|string $id, array $select = [], ?array $joins = null ) : Entity|array {
+
+        // Identificativo tabella da inserire nella query
+        $identifyTable = $this->table;
+
+        // Se non è utilizzato il softDelete allora posso utilizzare l'alias
+        if ( ! $this->useSoftDeletes ) {
+            $this->from($this->table . ' ' . $this->alias, true);
+
+            $identifyTable = $this->alias;
+        }
+
+        $this->select(BaseModelHandler::getSelect($identifyTable, $select), false);
+
+        // Join per la query
+        if ( ! is_null($joins)) {
+            foreach ( $joins as $join ) {
+                $this->join($join[0], $join[1], ! isset($join[3]) ? 'left' : $join[3]);
+            }
+        }
+
+        return $this->find($id);
+
+    }
+
+    //---------------------------------------------------------------------
+
+    /**
      * Funzione che controlla se un valore è univoco nella tabella
      *
      * @return bool True se è univoco, altrimenti false
      */
     public function isUnique(string $column, $value) : bool {
         return is_null($this->where($column, $value)->first());
+    }
+
+    //---------------------------------------------------------------------
+
+    /**
+     * Restituisce il tipo di ritorno dalle funzioni di ricerca
+     *
+     * @return string
+     */
+    public function getReturnType() :string { return $this->returnType; }
+
+    //---------------------------------------------------------------------
+
+    /**
+     * Ritorna TRUE se l'identificativo è una stringa,
+     * FALSE altrimenti
+     *
+     * @return bool
+     */
+    public function isStringId() : bool {
+        return $this->typeId == 'string';
+    }
+
+    //---------------------------------------------------------------------
+
+    /**
+     * Calcola un nuovo identificativo stringa.
+     *
+     * @return string
+     */
+    public function getNewStringId () : string {
+
+        $uid = null;
+
+        do {
+            $uid = Uuid::uuid1();
+        } while ( $this->isUnique('id', $uid));
+
+        return $uid->toString();
     }
 
     //---------------------------------------------------------------------

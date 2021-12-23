@@ -83,7 +83,7 @@ interface Service {
      *
      * @return bool  Ritorna TRUE se la risorsa è stata cancellata, FALSE altrimenti
      */
-    public function delete(IncomingRequest $request, int $id) : bool;
+    public function delete(IncomingRequest $request, int|string $id) : bool;
 
     //---------------------------------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ interface Service {
      *
      * @param CodeIgniter\HTTP\IncomingRequest $request   Dati della richiesta
      *
-     * @throws \SamagTech\Exceptions\ExcelException solleva quest'eccezione in caso di fallimento della creazione dell'excel
+     * @throws SamagTech\ExcelLib\ExcelException solleva quest'eccezione in caso di fallimento della creazione dell'excel
      *
      * @param string    Path per scaricare l'excel
      */

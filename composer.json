@@ -24,6 +24,7 @@
     "require": {
         "php": ">=7.4",
         "codeigniter4/framework": "^4@rc",
-        "samagtech/excel-lib": "^1.0"
+        "samagtech/excel-lib": "^1.0",
+        "ramsey/uuid": "^4.2"
     }
 }
