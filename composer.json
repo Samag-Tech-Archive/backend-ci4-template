@@ -13,7 +13,7 @@
             "SamagTech\\Contracts\\" : "src/Contracts/",
             "SamagTech\\Exceptions\\" : "src/Exceptions/",
             "SamagTech\\Core\\" : "src/Core/",
-            "SamagTech\\Commands\\" : "src/Commands/",
+            "SamagTech\\Crud\\" : "src/",
             "SamagTech\\Log\\" : "src/Log/"
         },
         "files" : [

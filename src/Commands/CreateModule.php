@@ -1,6 +1,6 @@
 <?php
 
-namespace SamagTech\Commands;
+namespace SamagTech\Crud\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
