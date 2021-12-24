@@ -44,5 +44,18 @@ trait CrudTrait {
 
     //---------------------------------------------------------------------------------------------------
 
+    /**
+     * Restituisce il messaggio per le funzioni di response
+     *
+     * @param string $functionName  Nome funzione che restituisce il messaggio
+     *
+     * @return string
+     */
+    public function getResponseMessage(string $functionName) : string {
+        return is_null($this->moduleName) ? $this->messages[$functionName] : lang(sprintf('%s.%s', $this->moduleName, $functionName));
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
 
 }

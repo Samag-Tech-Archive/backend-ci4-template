@@ -1,17 +1,19 @@
 <?php namespace SamagTech\Core;
 
-use CodeIgniter\Controller as Controller;
-use \CodeIgniter\HTTP\Response as Response;
+use CodeIgniter\Controller;
+use CodeIgniter\HTTP\Response;
+use SamagTech\Contracts\Service;
 use CodeIgniter\API\ResponseTrait;
-use SamagTech\Crud\Exceptions\CreateException;
-use SamagTech\Crud\Exceptions\DeleteException;
-use SamagTech\Crud\Exceptions\GenericException;
-use SamagTech\Crud\Exceptions\ResourceNotFoundException;
-use SamagTech\Crud\Exceptions\UpdateException;
-use SamagTech\Crud\Exceptions\ValidationException;
-use SamagTech\Crud\Singleton\CurrentUser;
 use SamagTech\Crud\Traits\CrudTrait;
 use SamagTech\ExcelLib\ExcelException;
+use SamagTech\Crud\Singleton\CurrentUser;
+use SamagTech\Exceptions\CreateException;
+use SamagTech\Exceptions\DeleteException;
+use SamagTech\Exceptions\UpdateException;
+use SamagTech\Contracts\ControllerFactory;
+use SamagTech\Exceptions\GenericException;
+use SamagTech\Exceptions\ValidationException;
+use SamagTech\Exceptions\ResourceNotFoundException;
 
 /**
  * Classe astratta per la definizione di un nuovo CRUD.
@@ -20,23 +22,23 @@ use SamagTech\ExcelLib\ExcelException;
  * @extends Controller
  * @abstract
  */
-abstract class BaseController extends Controller implements ServiceControllerInterface {
+abstract class BaseController extends Controller implements ControllerFactory {
 
     use ResponseTrait, CrudTrait;
 
     /**
-     * Variabile per la definizione del sottomodulo che deve essere utilizzato
+     * Istanza del servizio
      *
-     * @var CRUDService
+     * @var SamagTech\Contracts\Service
      * @access public
      */
-    public CRUDService $service;
+    public Service $service;
 
     /**
      * Variabile che contiene i dati inerenti all'utente
      * autenticato tramite JWT
      *
-     * @var CurrentUser
+     * @var object|null
      * @access public
      */
     public ?object $currentUser = null;
@@ -87,6 +89,14 @@ abstract class BaseController extends Controller implements ServiceControllerInt
 	*/
 	protected $helpers = [];
 
+    /**
+     * Nome del modulo da attivare
+     *
+     * @var string|null
+     * @access private
+     */
+    private ?string $moduleName = null;
+
 	/**
 	 * Constructor.
 	 */
@@ -125,6 +135,9 @@ abstract class BaseController extends Controller implements ServiceControllerInt
         // Inizializzo il servizio da utilizzare
         $this->service = $this->makeService($this->currentUser->app_token ?? null);
 
+        // Recupero il nome del modulo
+        $this->moduleName = $this->getClassName();
+
     }
 
     //--------------------------------------------------------------------------------------------
@@ -135,21 +148,20 @@ abstract class BaseController extends Controller implements ServiceControllerInt
      * @implements Factory
      *
      */
-    public function makeService($token): CRUDService {
+    public function makeService(?string $token = null): Service {
 
         if ( ! is_null($token) && ! is_null($this->services) && isset($this->services[$token]) ) {
-            return new $this->services[$token];
+            return new $this->services[$token]($this->logger);
         }
 
-        return new $this->defaultService;
+        $defaultService = $this->defaultService;
+        return new $defaultService($this->logger);
     }
 
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la creazione di una nuova risorsa
-     *
-     * @return \CodeIgniter\HTTP\Response
+     * {@inheritDoc}
      */
     public function create() : Response {
 
@@ -173,37 +185,33 @@ abstract class BaseController extends Controller implements ServiceControllerInt
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la lettura dei dati di una o più risorse
+     * {@inheritDoc}
      *
-     * @param int $id   Identificativo della singola risorsa ( Default 'null')
-     *
-     * @return \CodeIgniter\HTTP\Response
      */
-    public function retrieve(int $id = null) : Response {
+    public function retrieve() : Response {
 
         try {
-            $data = $this->service->retrieve($this->request, $id);
+            $data = $this->service->retrieve($this->request);
         }
         catch(ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
+            return $this->failNotFound(message:$e->getMessage(), code: $e->getHttpCode());
         }
         catch(GenericException $e) {
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
-        return $this->respond($data, 200, $this->messages['retrieve']);
+        $data['message'] = $this->getResponseMessage('retrieve');
+
+        return $this->respond($data, 200);
     }
 
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la modifica di una risorsa
+     * {@inheritDoc}
      *
-     * @param int $id   Identificativo della risorsa da modifica
-     *
-     * @return \CodeIgniter\HTTP\Response
      */
-    public function update(int $id ) : Response {
+    public function update(int|string $id ) : Response {
 
         // Recupero l'identificativo della risorsa appena creata
         try {
@@ -213,38 +221,35 @@ abstract class BaseController extends Controller implements ServiceControllerInt
             return $this->failValidationErrors($e->getValidationErrors(), $e->getHttpCode());
         }
         catch ( ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
+            return $this->failNotFound(message: $e->getMessage(), code: $e->getHttpCode());
         }
         catch(UpdateException | GenericException $e) {
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
-        return $this->respondUpdated(['item_id' => $id], $this->messages['update']);
+        return $this->respondUpdated(['item_id' => $id, 'message' => $this->getResponseMessage('update')]);
     }
 
     //--------------------------------------------------------------------------------------------
 
     /**
-     * Route per la cancellazione di una risorsa
+     * {@inheritDoc}
      *
-     * @param int $id  Identificativo della risorsa da cancellare
-     *
-     * @return \CodeIgniter\HTTP\Response
      */
-    public function delete(int $id) : Response {
+    public function delete(int|string $id) : Response {
 
         // Recupero l'identificativo della risorsa appena creata
         try {
             $this->service->delete($this->request,$id);
         }
         catch ( ResourceNotFoundException $e ) {
-            return $this->failNotFound($e->getMessage(), $e->getHttpCode());
+            return $this->failNotFound(message: $e->getMessage(), code: $e->getHttpCode());
         }
         catch(DeleteException | GenericException $e) {
             return $this->fail($e->getMessage(), $e->getHttpCode());
         }
 
-        return $this->respondDeleted(['item_id'  =>  $id], $this->messages['delete']);
+        return $this->respondDeleted(['item_id'  =>  $id, 'message' => $this->getResponseMessage('delete')]);
     }
 
     //-----------------------------------------------------------------------------
@@ -266,17 +271,8 @@ abstract class BaseController extends Controller implements ServiceControllerInt
             return $this->fail($e->getMessage());
         }
 
-        return $this->respond(['export_path' => $path], 200, $this->messages['export']);
+        return $this->respond(['export_path' => $path, 'message' => $this->getResponseMessage('export')], 200);
     }
 
     //---------------------------------------------------------------------------------------------------
-
-    /**
-     * Funzione per il fixing del CORS
-     *
-     * @return Response
-     */
-    public function  options() : Response {
-        return $this->response->setStatusCode(Response::HTTP_OK);
-    }
 }
