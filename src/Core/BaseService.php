@@ -86,6 +86,8 @@ abstract class BaseService implements Service {
      * @var array<int,string>
      * @access protected
      * Default []
+     *
+     * Es. [ 'id', 'name', 'E.name as external_name' ]
      */
     protected array $retrieveSelect = [];
 
@@ -95,6 +97,8 @@ abstract class BaseService implements Service {
      * @var array<int,array<int,string>>|null
      * @access protected
      * Default null
+     *
+     * Es. [ 'table alias', 'condition', 'left(optional)' ]
      */
     protected ?array $retrieveJoin = null;
 
@@ -104,6 +108,8 @@ abstract class BaseService implements Service {
      * @var array<string,string>|null
      * @access protected
      * Default null
+     *
+     * Es. [ 'key' => 'value', 'key1 <' => 'value']
      */
     protected ?array $retrieveWhere = null;
 
@@ -113,6 +119,8 @@ abstract class BaseService implements Service {
      * @var array<int,string>|null
      * @access protected
      * Default null
+     *
+     * Es. ['name', 'fiscal_code' ]
      */
     protected ?array $retrieveGroupBy = null;
 
@@ -143,6 +151,8 @@ abstract class BaseService implements Service {
      *
      * @access protected
      *
+     * Es. ['id:desc'] OR ['name:asc', 'id:desc']
+     *
      * Default 'id:desc'
      */
     protected array $retrieveSortBy = ['id:desc'];
@@ -153,11 +163,15 @@ abstract class BaseService implements Service {
      *
      * L'array deve essere formato con  FILTRO → CAMPO_CON_ALIAS
      *
-     * Es. employee_name => E.name dove E è l'alias della tabella
      *
      * @var array<string,string>
      * @access protected
      * Default []
+     *
+     * Es. [
+     *  'external_name' => 'E.name',
+     *  'external_field' => 'T.field'
+     * ]
      */
     protected array $joinFieldsFilters = [];
 
@@ -172,6 +186,11 @@ abstract class BaseService implements Service {
      * @var array<string,string>
      * @access protected
      * Default []
+     *
+     *  Es. [
+     *  'external_name' => 'E.name',
+     *  'external_field' => 'T.field'
+     * ]
      */
     protected array $joinFieldsSort = [];
 
@@ -318,9 +337,6 @@ abstract class BaseService implements Service {
         else {
             $this->model = new $this->modelName;
         }
-
-        // Istanzio la classe del database per usare le transazioni
-        $this->db = \Config\Database::connect();
 
         // Setto i dati dell'utente loggato
         $this->currentUser = CurrentUser::getIstance()->getProperty();
