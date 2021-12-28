@@ -2,9 +2,10 @@
 
 namespace SamagTech\Core;
 
-use CodeIgniter\Entity\Entity;
 use Ramsey\Uuid\Uuid;
 use CodeIgniter\Model;
+use CodeIgniter\Entity\Entity;
+use SamagTech\Core\BaseModelHandler;
 
 /**
  * Estensione del modello di CI4
@@ -173,7 +174,10 @@ abstract class BaseModel extends Model {
      * Costruttore
      *
      */
-    public function __construct() {
+    public function __construct($DBGroup = 'default') {
+
+        $this->DBGroup = $DBGroup;
+
         parent::__construct();
 
         // Controllo che la tabella sia settata
@@ -324,24 +328,8 @@ abstract class BaseModel extends Model {
             $identifyTable = $this->alias;
         }
 
+        // Genera la select
         $this->select(BaseModelHandler::getSelect($identifyTable, $options['select']), false);
-
-        // Opzione per le clausole where non mutabili
-        if ( ! is_null($options['where'])) {
-            $this->where($options['where']);
-        }
-
-        // Join per la query
-        if ( ! is_null($options['join'])) {
-            foreach ( $options['join'] as $join ) {
-                $this->join($join[0], $join[1], ! isset($join[3]) ? 'left' : $join[3]);
-            }
-        }
-
-        // Eventuali group by
-        if ( ! is_null($options['group_by'])) {
-            $this->groupBy(BaseModelHandler::getGroupBy($options['group_by']));
-        }
 
         // L'orientamento è dato dal [Campo][Divisore Campo-Ordinamento '.' ][Verso ordinamento]
         foreach( $options['sort_by'] as $sortBy) {
@@ -364,88 +352,8 @@ abstract class BaseModel extends Model {
 
         }
 
-        // Creo le clausole in base ai paramentri delle query
-        if ( ! empty($params)) {
-            foreach ( $params as $param => $value ) {
-
-                // Inizializzo la clausola di default
-                $clause = null;
-
-                // Controllo se nella stringa ci sono i due :
-                if ( strpos($param, ':') === false ) {
-                    $field = $param;
-                }
-                else {
-                    // Splitto i parametri GET identificare che tipo di clausola applicare
-                    list($field,$clause) = explode(':',$param);
-                }
-
-                /**
-                 * Controllo se il filtro deve essere applicato su un campo di una tabella joinata
-                 *
-                 * - Se appartiene ad una tabella joinata allora viene codificato
-                 * - altrimenti viene aggiunto l'alias al campo
-                 *
-                 */
-                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $identifyTable.'.'.$field;
-
-                // Se non esiste nessuna indicazione oltre al campo viene applicata la clausola where
-                if ( is_null($clause) ) {
-
-                    $this->where($trueField,$value);
-                }
-                else {
-
-                    /**
-                     * Se esiste un indicazione ulteriore allora utilizzo la clausola adatta
-                     *
-                     * - like aggiunge la clausola like con match %valore%
-                     * - gte  aggiunge la clausola con >=
-                     * - gt   aggiunge la clausola con >
-                     * - lte  aggiunge la clausola con <=
-                     * - lt   aggiunge la clausola con <
-                     *
-                     */
-                    switch ( $clause ) {
-                        case 'like' :
-                            $this->like($trueField, $value);
-                        break;
-                        case 'gte'  :
-                            $this->where($trueField . ' >=', $value);
-                        break;
-                        case 'lte' :
-                            $this->where($trueField . ' <=', $value);
-                        break;
-                        case 'lt' :
-                            $this->where($trueField . ' <', $value);
-                        break;
-                        case 'gt' :
-                            $this->where($trueField . ' >', $value);
-                        break;
-                        case 'bool' :
-                            $this->where($trueField . ' IS '. $value);
-                        break;
-                        case 'bool_not' :
-                            $this->where($trueField . ' IS NOT '. $value);
-                        break;
-                        case 'not_in' :
-                            $this->whereNotIn($trueField, explode(',', $value));
-                            break;
-                        case 'in' :
-                            $this->whereIn($trueField, explode(',', $value));
-                        break;
-                        case 'null' :
-                            if ( $value == 'true' ) {
-                                $this->where($trueField, null);
-                            }
-                            else {
-                                $this->where($trueField . ' !=', null);
-                            }
-                        break;
-                    }
-                }
-            }
-        }
+        // Genera la query con tutte le opzioni ed i parametri
+        $this->createRetrieveQuery($options, $identifyTable, $params, $joinFieldsFilters);
 
         // Se il flag della paginazione è attivo restituisco tutti i dati
         if ( $options['no_pagination'] ) {
@@ -454,7 +362,6 @@ abstract class BaseModel extends Model {
 
         // Recupero i dati con paginazione
         return $this->findAll($options['limit'],  $options['limit'] * ($options['offset'] > 0 ? $options['offset'] - 1 : 0));
-
 
     }
 
@@ -472,14 +379,7 @@ abstract class BaseModel extends Model {
     public function getWithId (int|string $id, array $select = [], ?array $joins = null ) : Entity|array {
 
         // Identificativo tabella da inserire nella query
-        $identifyTable = $this->table;
-
-        // Se non è utilizzato il softDelete allora posso utilizzare l'alias
-        if ( ! $this->useSoftDeletes ) {
-            $this->from($this->table . ' ' . $this->alias, true);
-
-            $identifyTable = $this->alias;
-        }
+        $identifyTable = $this->getIdentityTable();
 
         $this->select(BaseModelHandler::getSelect($identifyTable, $select), false);
 
@@ -548,16 +448,164 @@ abstract class BaseModel extends Model {
 
 	/**
 	 *
-     * Ritorna il numero di righe trovate dopo SQL_CALC_FOUND_ROWS ( durante la paginazione)
+     * Ritorna il numero di righe trovate durate l'utilizzo
+     * del metodo @getWithParams()
 	 *
-	 * @return integer
+	 * @return int
 	 */
-	public function getFoundRows() {
+	public function getFoundRows() : int {
 
-        $db = \Config\Database::connect();
+        // Identificativo tabella da inserire nella query
+        $identifyTable = $this->getIdentityTable();
 
-		return $db->query('SELECT FOUND_ROWS() as tot_rows')->getRow()->tot_rows;
+        $this->select('COUNT(*) as n_rows');
+
+        $this->createRetrieveQuery();
+
+        return 0;
 	}
+
+	// --------------------------------------------------------------------------
+
+    /**
+     * Creare tramite il query builder la base della query sia per la funzione di listaggio
+     * sia per il calcolo del numero di righe.
+     *
+     * @param   array   $options            Array contenente le opzioni settate nel controller per il listaggio(where,join,select ecc...)
+     * @param   string  $identityTable      Identificativo della tabella
+     * @param   array   $params             Array con i paramentri per la query da eseguire
+     * @param   array   $joinFieldsFilters  Array contenente i filtri sui join, traduce il campo in get nella clausola da applicare
+     *
+     * @return void
+     */
+    private function createRetrieveQuery (array $options, string $identifyTable, array $params = [], array $joinFieldsFilters = [] ) : void {
+
+        // Opzione per le clausole where non mutabili
+        if ( ! is_null($options['where'])) {
+            $this->where($options['where']);
+        }
+
+        // Join per la query
+        if ( ! is_null($options['join'])) {
+            foreach ( $options['join'] as $join ) {
+                $this->join($join[0], $join[1], ! isset($join[3]) ? 'left' : $join[3]);
+            }
+        }
+
+        // Eventuali group by
+        if ( ! is_null($options['group_by'])) {
+            $this->groupBy(BaseModelHandler::getGroupBy($options['group_by']));
+        }
+
+        // Creo le clausole in base ai paramentri delle query
+        if ( ! empty($params)) {
+            foreach ( $params as $param => $value ) {
+
+                // Inizializzo la clausola di default
+                $clause = null;
+
+                // Controllo se nella stringa ci sono i due :
+                if ( strpos($param, ':') === false ) {
+                    $field = $param;
+                }
+                else {
+                    // Splitto i parametri GET identificare che tipo di clausola applicare
+                    list($field,$clause) = explode(':',$param);
+                }
+
+                /**
+                 * Controllo se il filtro deve essere applicato su un campo di una tabella joinata
+                 *
+                 * - Se appartiene ad una tabella joinata allora viene codificato
+                 * - altrimenti viene aggiunto l'alias al campo
+                 *
+                 */
+                $trueField = isset($joinFieldsFilters[$field]) ? $joinFieldsFilters[$field] : $identifyTable.'.'.$field;
+
+                // Se non esiste nessuna indicazione oltre al campo viene applicata la clausola where
+                if ( is_null($clause) ) {
+
+                    $this->where($trueField,$value);
+                }
+                else {
+
+                    /**
+                     * Se esiste un indicazione ulteriore allora utilizzo la clausola adatta
+                     *
+                     * - like       aggiunge la clausola like con match %valore%
+                     * - gte        aggiunge la clausola con >=
+                     * - gt         aggiunge la clausola con >
+                     * - lte        aggiunge la clausola con <=
+                     * - lt         aggiunge la clausola con <
+                     * - bool       aggiunge la clausola con IS true|false
+                     * - bool_not   aggiunge la clausola con IS NOT true|false
+                     * - not_in     aggiunge la clausola WHERE NOT IN (campo, valori) I valori sono dati dal'explode con la virgola
+                     * - in         aggiunge la clausola WHERE IN (campo, valori) I valori sono dati dal'explode con la virgola
+                     * - null       aggiunge la clausola IS NULL se il valore è TRUE, IS NOT NULL se il valore è FALSE
+                     */
+                    switch ( $clause ) {
+                        case 'like' :
+                            $this->like($trueField, $value);
+                        break;
+                        case 'gte'  :
+                            $this->where($trueField . ' >=', $value);
+                        break;
+                        case 'lte' :
+                            $this->where($trueField . ' <=', $value);
+                        break;
+                        case 'lt' :
+                            $this->where($trueField . ' <', $value);
+                        break;
+                        case 'gt' :
+                            $this->where($trueField . ' >', $value);
+                        break;
+                        case 'bool' :
+                            $this->where($trueField . ' IS '. $value);
+                        break;
+                        case 'bool_not' :
+                            $this->where($trueField . ' IS NOT '. $value);
+                        break;
+                        case 'not_in' :
+                            $this->whereNotIn($trueField, explode(',', $value));
+                            break;
+                        case 'in' :
+                            $this->whereIn($trueField, explode(',', $value));
+                        break;
+                        case 'null' :
+                            if ( $value == 'true' ) {
+                                $this->where($trueField, null);
+                            }
+                            else {
+                                $this->where($trueField . ' !=', null);
+                            }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+	// --------------------------------------------------------------------------
+
+    /**
+     * Restituisce l'identificativo della tabella
+     *
+     * @return string
+     */
+    private function getIdentityTable () : string {
+
+        // Identificativo tabella da inserire nella query
+        $identifyTable = $this->table;
+
+        // Se non è utilizzato il softDelete allora posso utilizzare l'alias
+        if ( ! $this->useSoftDeletes ) {
+            $this->from($this->table . ' ' . $this->alias, true);
+
+            $identifyTable = $this->alias;
+        }
+
+        return $identifyTable;
+    }
 
 	// --------------------------------------------------------------------------
 
