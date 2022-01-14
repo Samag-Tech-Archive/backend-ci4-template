@@ -538,14 +538,16 @@ abstract class CRUDService implements Service {
         // Creo l'istanza del generatore dell'excel
         $writer = (new ExcelFactory)->createWriter($this->exportPath, $this->exportFilename, $this->exportIgnoreFieldsFormat);
 
-        $writer->setHeader($this->exportHeader)
-                ->setBody($data);
+        $writer->setHeader($this->exportHeader);
 
         // Cancella le colonne inutili
         $this->deleteUnusedColumns($data);
 
         // Callback per modifiche pre-build dell'excel
         $writer = $this->preBuildExcelCallback($writer, $data);
+
+        // Setto i dati
+        $writer->setBody($data);
 
         return $writer->build();
 
