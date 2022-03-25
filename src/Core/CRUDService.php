@@ -177,7 +177,7 @@ abstract class CRUDService implements Service {
      *
      * Default WRITEPATH.'export/'
      */
-    protected string $exportPath = WRITEPATH.'export/';
+    protected string $exportPath = 'export/';
 
     /**
      * Nome di default del file Excel generato durante l'esportazione
@@ -536,7 +536,7 @@ abstract class CRUDService implements Service {
         $this->preExportCallback($data);
 
         // Creo l'istanza del generatore dell'excel
-        $writer = (new ExcelFactory)->createWriter($this->exportPath, $this->exportFilename, $this->exportIgnoreFieldsFormat);
+        $writer = (new ExcelFactory)->createWriter(WRITEPATH. $this->exportPath, $this->exportFilename, $this->exportIgnoreFieldsFormat);
 
         $writer->setHeader($this->exportHeader);
 
@@ -549,7 +549,9 @@ abstract class CRUDService implements Service {
         // Setto i dati
         $writer->setBody($data);
 
-        return $writer->build();
+        $explodePath = explode('/', $writer->build());
+
+        return $this->exportPath. end($explodePath);
 
     }
 
