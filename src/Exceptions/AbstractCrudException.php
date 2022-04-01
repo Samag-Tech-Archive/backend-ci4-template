@@ -41,9 +41,9 @@ abstract class AbstractCrudException extends Exception {
         $message ??= $this->customMessage;
 
         // Controllo se è settato il codice
-        $code   ??= $this->httpCode;
+        $this->httpCode = ! is_null($code) ? $code : $this->httpCode;
 
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $this->httpCode, $previous);
     }
 
     //-------------------------------------------------------------------------------------------------------
