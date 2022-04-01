@@ -211,6 +211,14 @@ abstract class CRUDService implements Service {
     protected array $exportHeader = [];
 
     /**
+     * Lista delle definizioni delle colonne
+     *
+     * @var array
+     * @access protected
+     */
+    protected array $exportColumnDefinition = [];
+
+    /**
      * Lista delle colonna da eliminare durante l'esportazione Excel
      *
      * @var array
@@ -539,6 +547,10 @@ abstract class CRUDService implements Service {
         $writer = (new ExcelFactory)->createWriter(WRITEPATH. $this->exportPath, $this->exportFilename, $this->exportIgnoreFieldsFormat);
 
         $writer->setHeader($this->exportHeader);
+
+        if ( ! empty($this->exportColumnDefinition) ) {
+            $writer->setColumnDefinition($this->exportColumnDefinition);
+        }
 
         // Cancella le colonne inutili
         $this->deleteUnusedColumns($data);
