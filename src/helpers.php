@@ -37,6 +37,37 @@ if ( ! function_exists('prd')) {
 	}
 }
 
+
+// --------------------------------------------------------------------------
+
+/**
+ * Funzione pr() con lista di argomenti.
+ *
+ * @access public
+ * @param mixed $d
+ * @return void
+ */
+if ( ! function_exists('prl')) {
+	function prl(...$d) {
+	   pr($d);
+	}
+}
+
+// --------------------------------------------------------------------------
+
+/**
+ * Funzione prd() con lista di argomenti.
+ *
+ * @access public
+ * @param mixed $d
+ * @return void
+ */
+if ( ! function_exists('prdl')) {
+	function prdl(...$d) {
+	   prd($d);
+	}
+}
+
 // --------------------------------------------------------------------------
 
 /**
