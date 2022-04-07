@@ -1,13 +1,22 @@
 <?php namespace SamagTech\Core;
 
+use CodeIgniter\CodeIgniter;
+use CodeIgniter\I18n\Time;
 use Psr\Log\LoggerInterface;
 use SamagTech\Core\BaseModel;
 use CodeIgniter\Entity\Entity;
+use SamagTech\ExcelLib\Writer;
 use SamagTech\Contracts\Service;
 use CodeIgniter\HTTP\IncomingRequest;
 use SamagTech\Crud\Config\BaseAppConfig;
 use SamagTech\Crud\Singleton\CurrentUser;
 use SamagTech\Exceptions\CreateException;
+use SamagTech\Exceptions\DeleteException;
+use SamagTech\Exceptions\UpdateException;
+use SamagTech\Exceptions\GenericException;
+use SamagTech\Exceptions\ValidationException;
+use SamagTech\ExcelLib\Factory as ExcelFactory;
+use SamagTech\Exceptions\ResourceNotFoundException;
 
 /**
  * Classe astratta che implementa i servizi CRUD di default
@@ -369,6 +378,19 @@ abstract class BaseService implements Service {
 
         }
 
+        // Se l'identificativo deve essere una stringa lo calcolo
+        if ( $this->model->isStringId () ) {
+
+            $id = $this->model->getNewStringId();
+
+            if ( $this->useEntity ) {
+                $data->id = $id;
+            }
+            else {
+                $data['id'] = $id;
+            }
+        }
+
         // Inserisco i dati
         $id = $this->model->insert($data);
 
@@ -394,12 +416,7 @@ abstract class BaseService implements Service {
      * {@inheritDoc}
      *
      */
-    public function retrieve( IncomingRequest $request, int $id = null) : array {
-
-        // Controllo se la risorsa esiste
-        if  ( ! is_null($id) && ! $this->model->exist($id) ) {
-            throw new ResourceNotFoundException();
-        }
+    public function retrieve( IncomingRequest $request) : array {
 
         // Recupero i parametri da eseguire
         $params = $request->getGet();
@@ -413,8 +430,7 @@ abstract class BaseService implements Service {
             'limit'     =>  ! isset($params['for_page']) ? $this->retriveLimit : $params['for_page'],
             'offset'    =>  ! isset($params['page']) ? 1 : $params['page'],
             'sort_by'   =>  ! isset($params['sort_by']) ? $this->retrieveSortBy : [$params['sort_by']],
-            'no_pagination' => $this->noPagination,
-            'item_id'   =>  $id
+            'no_pagination' => $this->noPagination
         ];
 
         // Elimino dai parametri i dati già recuperati
@@ -436,13 +452,8 @@ abstract class BaseService implements Service {
         // Restutuisce tutte le righe trovate non paginate
         $data['total_rows'] = (int)$this->model->getFoundRows();
 
-        // Se è impostato l'identificativo setto data con i dati di rows
-        if ( ! is_null($id) ) {
-            $data = $data['rows'];
-        }
-
         // Callback per la modifica della lista
-        $data = $this->postRetrieveCallback($data, ! is_null($id));
+        $data = $this->postRetrieveCallback($data);
 
         return $data;
     }
@@ -453,10 +464,43 @@ abstract class BaseService implements Service {
      * {@inheritDoc}
      *
      */
+    public function retrieveById(int|string $id): Entity|array {
+
+        $options = [
+            'select'    => $this->retrieveSelect,
+            'join'      => $this->retrieveJoin,
+        ];
+
+        // Callback per la modifica delle opzioni
+        $options = $this->preRetrieveByIdCallback($options);
+
+        // Recupero i dati della risorsa
+        $resource =  $this->model->getWithId($id, $options['select'], $options['join']);
+
+        // Se la risorsa non è stata trovata sollevo un eccezione
+        if ( is_null($resource) ) {
+            throw new ResourceNotFoundException();
+        }
+
+        // Callback post recupero dati
+        $resource = $this->postRetrieveByIdCallback($resource);
+
+        return $resource;
+
+    }
+
+    //--------------------------------------------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     */
     public function update(IncomingRequest $request, int|string $id) : bool {
 
+        $currentData = $this->model->find($id);
+
         // Controllo se la risorsa esiste
-        if  ( is_null($oldData = $this->model->find($id)) ) {
+        if  ( is_null($currentData) ) {
             throw new ResourceNotFoundException();
         }
 
@@ -466,41 +510,55 @@ abstract class BaseService implements Service {
         // Eseguo il check della validazione
         $this->checkValidation($data,'update');
 
-        // Callback pre-modifica
-        $data = $this->preUpdateCallback($id, $data);
-
         // Callback per estrarre dati esterni alla riga
         $extraUpdate = $this->getExtraData($data);
 
+        if ( $this->useEntity ) {
+            $data = $currentData->fill($data);
+        }
+
+        // Callback pre-modifica
+        $data = $this->preUpdateCallback($id, $data);
+
         // Inizializzo la transazione
-        $this->db->transStart();
+        $this->model->transStart();
 
         // Se è impostato la colonna updated_by aggiungo l'utente corrente
         if ( $this->model->useUpdatedBy ) {
-            $data = array_merge($data, [
-                'updated_by' => $this->currentUser->id,
-            ]);
+
+            if ( $this->useEntity ) {
+                $data->created_by = $this->currentUser->id;
+            }
+            else {
+                $data['created_by'] = $this->currentUser->id;
+            }
+
         }
 
-        $data['updated_date'] = Time::now();
+        if ( $this->useEntity ) {
+            $data->updated_date = Time::now();
+        }
+        else {
+            $data['updated_date'] = Time::now();
+        }
 
         // Inserisco i dati
-        $isUpdate = $this->model->update($id,$data);
+        $updated = $this->useEntity ? $this->model->save($data) : $this->model->update($id,$data);
 
         // Check per il logger
-        $this->logger->create('update', $id, $oldData, $data);
+        // $this->logger->create('update', $id, $oldData, $data);
 
         // Callback post-modifica
         $this->postUpdateCallback($id, $data, $extraUpdate);
 
-        $this->db->transComplete();
+        $this->model->transComplete();
 
         // Se la transazione è fallita sollevo un eccezione
-        if ( $this->db->transStatus() === FALSE ) {
+        if ( $this->model->transStatus() === FALSE ) {
             throw new UpdateException();
         }
 
-        return $isUpdate;
+        return $updated;
     }
 
     //--------------------------------------------------------------------------------------------------------
@@ -509,7 +567,7 @@ abstract class BaseService implements Service {
      * {@inheritDoc}
      *
      */
-    public function delete(IncomingRequest $request, int $id) : bool {
+    public function delete(IncomingRequest $request, int|string $id) : bool {
 
         // Controllo se la risorsa esiste
         if  ( is_null($oldData = $this->model->find($id)) ) {
@@ -517,28 +575,28 @@ abstract class BaseService implements Service {
         }
 
         // Inizializzo la transazione
-        $this->db->transStart();
+        $this->model->transStart();
 
         // Funzione pre-cancellazione
         $this->preDeleteCallback($id, $oldData);
 
         // Cancello la riga e controllo se la funzione restituisce false
-        $isDelete = $this->model->delete($id) != false;
+        $deleted = $this->model->delete($id) != false;
 
         // Check per il logger
-        $this->logger->create('delete', $id, $oldData);
+        // $this->logger->create('delete', $id, $oldData);
 
         // Callback per ulteriori azioni post cancellazione
         $this->postDeleteCallback($id, $oldData);
 
-        $this->db->transComplete();
+        $this->model->transComplete();
 
         // Se la transazione è fallita sollevo un eccezione
-        if ( $this->db->transStatus() === FALSE ) {
+        if ( $this->model->transStatus() === FALSE ) {
             throw new DeleteException();
         }
 
-        return $isDelete;
+        return $deleted;
     }
 
     //------------------------------------------------------------------------------------------------------
@@ -560,6 +618,8 @@ abstract class BaseService implements Service {
         }
 
         $data = $data['rows'];
+
+        $data = $this->useEntity ? $data->toArray() : $data;
 
         // Eseguo delle operazioni sui dati pre-esportazione
         $this->preExportCallback($data);
@@ -622,6 +682,8 @@ abstract class BaseService implements Service {
      * @param array<string,mixed>   $data      Array contenente i dati della richiesta da validare
      * @param string                $action    Azione che si sta compiendo Default ('insert')
      *
+     * @throws SamagTech\Exceptions\ValidationException Solleva quest'eccezione se fallisce la validazione
+     *
      * @return void
      */
     protected function checkValidation(array $data, string $action = 'insert') {
@@ -658,7 +720,7 @@ abstract class BaseService implements Service {
      *
      * @return Entity|array<string,mixed>
      */
-    protected function preInsertCallback(Entity|array $data ) : Entity|array  {
+    protected function preInsertCallback(Entity|array $data) : Entity|array  {
         return $data;
     }
 
@@ -668,9 +730,9 @@ abstract class BaseService implements Service {
     /**
      * Callback eseguita post inserimento dei dati
      *
-     * @param int|string   $id         Identificativo della riga inserita
-     * @param Entity|array $data       Contiene i dati inseriti
-     * @param array        $extraData  Array che contiene i dati extra se ci sono( Default = [])
+     * @param int|string                 $id         Identificativo della riga inserita
+     * @param Entity|array<string,mixed> $data       Contiene i dati inseriti
+     * @param array<string,mixed>        $extraData  Array che contiene i dati extra se ci sono( Default = [])
      *
      * @return void
      */
@@ -682,10 +744,10 @@ abstract class BaseService implements Service {
     /**
      * Callback eseguita pre modifica dei dati
      *
-     * @param int|string   $id     Identificativo della riga da modificare
-     * @param Entity|array $data   Contiene i dati per la modifica
+     * @param int|string                 $id     Identificativo della riga da modificare
+     * @param Entity|array<string,mixed> $data   Contiene i dati per la modifica
      *
-     * @return array
+     * @return Entity|array<string,mixed>
      */
     protected function preUpdateCallback(int|string $id, Entity|array $data ) : Entity|array  {
         return $data;
@@ -696,33 +758,33 @@ abstract class BaseService implements Service {
     /**
      * Callback eseguita post modifica dei dati
      *
-     * @param int|string    $id         Identificativo della riga inserita
-     * @param Entity|array  $data       Contiene i dati modificati
-     * @param array         $extraData  Array che contiene i dati extra se ci sono( Default = [])
+     * @param int|string                  $id         Identificativo della riga inserita
+     * @param Entity|array<string,mixed>  $data       Contiene i dati modificati
+     * @param array<string,mixed>         $extraData  Array che contiene i dati extra se ci sono( Default = [])
      *
      * @return void
      */
-    protected function postUpdateCallback( int $id, array $data, array $extraData = []) : void  {}
+    protected function postUpdateCallback(int|string $id, Entity|array $data, array $extraData = []) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback eseguita pre cancellazione dei dati
      *
-     * @param int|string   $id     Identificativo della riga da cancellare
-     * @param Entity|array $data   Contiene i dati c
+     * @param int|string                    $id     Identificativo della riga da cancellare
+     * @param Entity|array<string,mixed>    $data   Contiene i dati c
      *
      * @return void
      */
-    protected function preDeleteCallback( int $id, array $data ) : void  {}
+    protected function preDeleteCallback(int|string $id, Entity|array $data ) : void  {}
 
     //----------------------------------------------------------------------------------------------------
 
     /**
      * Callback eseguita post cancellazione dei dati
      *
-     * @param int   $id     Identificativo risorsa cancellata
-     * @param array $data   Dati della risorsa cancellata
+     * @param int|string                 $id     Identificativo risorsa cancellata
+     * @param Entity|array<string,mixed> $data   Dati della risorsa cancellata
      *
      * @return void
      */
@@ -747,21 +809,49 @@ abstract class BaseService implements Service {
     /**
      * Callback per la gestione della lista post-query
      *
-     * @param array $data               Lista dei dati estratti
-     * @param bool  $isSingleResource   True se sto recuperando un singolo elemento, False altrimenti (Default False)
+     * @param array<string,array<string,mixed|Entity>> $data               Lista dei dati estratti
      *
-     * @return array
+     * @return array<string,array<string,mixed|Entity>
      */
-    protected function postRetrieveCallback( array $data, bool $isSingleResource = false ) : array  {
+    protected function postRetrieveCallback(array $data) : array  {
         return $data;
     }
 
     //---------------------------------------------------------------------------------------------------
 
     /**
+     * Callback per la gestione delle opzioni pre recupero dati
+     *
+     * @param array<string,mixed> $options    Opzioni per il recupero dei dati
+     *
+     * @return array<string,mixed>
+     *
+     */
+    protected function preRetrieveByIdCallback(array $options) : array {
+        return $options;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Callback per la gestione delle opzioni post recupero dati
+     *
+     * @param Entity|array<string,mixed> $data    Dati recuperati
+     *
+     * @return Entity|array<string,mixed>
+     *
+     */
+    protected function postRetrieveByIdCallback(Entity|array $data) : Entity|array {
+        return $data;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+
+    /**
      * Callback per la modifica dei dati pre-esportazione excel
      *
-     * @param array &$data   Dati recuperati dalla lista
+     * @param array<int,array<string,mixed>|Entity[] &$data   Dati recuperati dalla lista
      *
      * @return void
      */
@@ -773,10 +863,10 @@ abstract class BaseService implements Service {
      * Callback per la gestione dei dati e dell'istanza del generatore
      * prima di lanciare la build dell'excel
      *
-     * @param Writer    $writer    Istanza generatore Excel
-     * @param array     $data      Dati da esportare
+     * @param SamagTech\ExcelLib\Writer    $writer    Istanza generatore Excel
+     * @param array<     $data      Dati da esportare
      *
-     * @return Writer   Ritorna l'istanza modificata
+     * @return SamagTech\ExcelLib\Writer   Ritorna l'istanza modificata
      *
      */
     protected function preBuildExcelCallback (Writer $writer, array &$data ) : Writer {
