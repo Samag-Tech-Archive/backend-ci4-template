@@ -1,11 +1,12 @@
 <?php namespace SamagTech\Core;
 
-use CodeIgniter\CodeIgniter;
 use CodeIgniter\I18n\Time;
+use CodeIgniter\CodeIgniter;
 use Psr\Log\LoggerInterface;
 use SamagTech\Core\BaseModel;
 use CodeIgniter\Entity\Entity;
 use SamagTech\ExcelLib\Writer;
+use SamagTech\ExcelLib\Factory as ExcelFactory;
 use SamagTech\Contracts\Service;
 use CodeIgniter\HTTP\IncomingRequest;
 use SamagTech\Crud\Config\BaseAppConfig;
@@ -15,7 +16,6 @@ use SamagTech\Exceptions\DeleteException;
 use SamagTech\Exceptions\UpdateException;
 use SamagTech\Exceptions\GenericException;
 use SamagTech\Exceptions\ValidationException;
-use SamagTech\ExcelLib\Factory as ExcelFactory;
 use SamagTech\Exceptions\ResourceNotFoundException;
 
 /**
@@ -879,8 +879,8 @@ abstract class BaseService implements Service {
      * Callback per la gestione dei dati e dell'istanza del generatore
      * prima di lanciare la build dell'excel
      *
-     * @param SamagTech\ExcelLib\Writer    $writer    Istanza generatore Excel
-     * @param array<     $data      Dati da esportare
+     * @param \SamagTech\ExcelLib\Writer              $writer    Istanza generatore Excel
+     * @param array<int,array<string,mixed>|Entity[]  $data      Dati da esportare
      *
      * @return SamagTech\ExcelLib\Writer   Ritorna l'istanza modificata
      *

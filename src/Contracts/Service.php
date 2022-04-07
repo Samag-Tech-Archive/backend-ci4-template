@@ -90,7 +90,7 @@ interface Service {
     /**
      * Esportazione della lista in formato Excel
      *
-     * @param CodeIgniter\HTTP\IncomingRequest $request   Dati della richiesta
+     * @param \CodeIgniter\HTTP\IncomingRequest $request   Dati della richiesta
      *
      * @throws SamagTech\ExcelLib\ExcelException solleva quest'eccezione in caso di fallimento della creazione dell'excel
      *
