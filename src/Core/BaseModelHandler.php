@@ -25,9 +25,23 @@ class BaseModelHandler {
 
         if ( empty($select) )  return '*';
 
-        foreach ( $select as &$s ) {
+        foreach ( $select as $key => &$s ) {
 
-            $s = str_contains($s, '.') ? $table . '.' .$s : $s;
+            /**
+             * Se sto definendo una funziona allora non metto nessun'alias
+             *
+             * Es. [
+             *  'CONCAT(col1, col2)' => 'func'
+             * ]
+             *
+             */
+            if ( is_string($key) && $s == 'func' ) {
+                $s = $key;
+            }
+            else {
+                $s = str_contains($s, '.') ? $table . '.' .$s : $s;
+            }
+
         }
 
         return implode(',', $select);
