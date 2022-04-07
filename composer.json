@@ -19,8 +19,9 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=7.4",
+        "php": ">= 8.0",
         "codeigniter4/framework": "^4@rc",
-        "samagtech/excel-lib": "^1.0"
+        "samagtech/excel-lib": "^1.0",
+        "guzzlehttp/guzzle": "^7.0"
     }
 }
