@@ -166,9 +166,9 @@ abstract class BaseCaller implements CallerInterface {
      *
      * @access public
      *
-     * @return BaseRestAuth
+     * @return BaseRestAuth|null
      */
-    public function getRestAuth () : BaseRestAuth {
+    public function getRestAuth () : ?BaseRestAuth {
         return match($this->authType) {
             'api_key'   => new APIKeyRestAuth($this->authToken),
             'jwt'       => new JWTRestAuth($this->authToken),

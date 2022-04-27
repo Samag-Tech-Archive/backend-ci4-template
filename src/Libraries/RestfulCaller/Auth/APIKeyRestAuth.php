@@ -5,7 +5,7 @@
  *
  * @author Alessandro Marotta <alessandro.marotta@samag.tech>
  */
-class APIKeyRestAuth implements RestAuthInterface {
+class APIKeyRestAuth extends BaseRestAuth {
 
     //---------------------------------------------------------------------------------------------------
 
