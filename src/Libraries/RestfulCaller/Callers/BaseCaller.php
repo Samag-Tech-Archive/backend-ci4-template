@@ -1,11 +1,13 @@
-<?php namespace SamagTech\Crud\Libraries\RestfulCaller\Caller;
+<?php namespace SamagTech\Crud\Libraries\RestfulCaller\Callers;
 
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Promise\PromiseInterface;
 use InvalidArgumentException;
 use SamagTech\Crud\Config\RestfulCaller as ConfigRestfulCaller;
+use SamagTech\Crud\Libraries\RestfulCaller\Auth\APIKeyRestAuth;
 use SamagTech\Crud\Libraries\RestfulCaller\Auth\BaseRestAuth;
+use SamagTech\Crud\Libraries\RestfulCaller\Auth\JWTRestAuth;
 use SamagTech\Crud\Libraries\RestfulCaller\Auth\RestAuthInterface;
 use SamagTech\Crud\Libraries\RestfulCaller\RestfulCallerException;
 use SamagTech\Crud\Libraries\RestfulCaller\Restful\RestfulInterface;
@@ -50,11 +52,11 @@ abstract class BaseCaller implements CallerInterface {
      *   - 'api_key'    per utilizzare X-API-KEY
      *   - 'jwt'        per utilizzare Authorization
      *
-     * @param string
+     * @param string|null
      *
      * @access protected
      */
-    protected string $authType = 'api_key';
+    protected ?string $authType = 'api_key';
 
     /**
      * Tipologia di caller da utilizzare.
@@ -155,6 +157,23 @@ abstract class BaseCaller implements CallerInterface {
         $this->executorRequest = $this->createExecutorRequest();
 
         return $this;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
+     * Restituisce l'istanza dell'autentifcazione
+     *
+     * @access public
+     *
+     * @return BaseRestAuth
+     */
+    public function getRestAuth () : BaseRestAuth {
+        return match($this->authType) {
+            'api_key'   => new APIKeyRestAuth($this->authToken),
+            'jwt'       => new JWTRestAuth($this->authToken),
+            default     => null
+        };
     }
 
     //---------------------------------------------------------------------------------------------------
@@ -306,15 +325,15 @@ abstract class BaseCaller implements CallerInterface {
         $config = new ConfigRestfulCaller;
 
         // Se il tipo non è presente nella configurazione allora sollevo un eccezione
-        if ( ! isset($config->defaults[$this->callerType]) || ! isset($config->anotherCaller[$this->callerType]) ) {
+        if ( ! isset($config->defaults[$this->callerType]) && ! isset($config->anotherCaller[$this->callerType]) ) {
             throw new RestfulCallerException('Il tipo di caller non esiste');
         }
 
         // Se il tipo è presente nei caller custom lo recupero da lì altrimenti recupero dai default
         if ( isset($config->customCallers[$this->callerType]) ) {
-            return new ${$config->customCallers[$this->callerType]}($this->client, new BaseRestAuth($this->authToken));
+            return new $config->customCallers[$this->callerType]($this->client, $this->getRestAuth());
         }
 
-        return new ${$config->defaults[$this->callerType]}($this->client, new BaseRestAuth($this->authToken));
+        return new $config->defaults[$this->callerType]($this->client, $this->getRestAuth());
     }
 }

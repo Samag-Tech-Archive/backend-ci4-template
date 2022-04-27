@@ -21,6 +21,21 @@ if ( ! function_exists('pr')) {
 	}
 }
 
+/**
+ * Accetta una lista da stampare con pr
+ *
+ * @access public
+ * @param mixed $d
+ *
+ * @return never
+ */
+if ( ! function_exists('prl') ) {
+
+	function prl(...$d) {
+		pr($d);
+	}
+}
+
 // --------------------------------------------------------------------------
 
 /**
@@ -34,6 +49,21 @@ if ( ! function_exists('prd')) {
 	function prd($d) {
 	   pr($d);
 	   die;
+	}
+}
+
+/**
+ * Accetta una lista da stampare con prd
+ *
+ * @access public
+ * @param mixed $d
+ *
+ * @return never
+ */
+if ( ! function_exists('prdl') ) {
+
+	function prdl(...$d) {
+		prd($d);
 	}
 }
 

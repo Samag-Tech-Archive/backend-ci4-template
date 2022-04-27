@@ -1,8 +1,8 @@
 <?php namespace SamagTech\Crud\Config;
 
 use CodeIgniter\Config\BaseConfig;
-use SamagTech\Crud\Libraries\RestfulCaller\AsyncRestful;
-use SamagTech\Crud\Libraries\RestfulCaller\SyncRestful;
+use SamagTech\Crud\Libraries\RestfulCaller\Executors\SyncRestful;
+use SamagTech\Crud\Libraries\RestfulCaller\Executors\AsyncRestful;
 
 /**
  * Configurazione per la libreria RestfulCaller

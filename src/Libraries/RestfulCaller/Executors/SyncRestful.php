@@ -1,4 +1,4 @@
-<?php namespace SamagTech\Crud\Libraries\RestfulCaller\Executor;
+<?php namespace SamagTech\Crud\Libraries\RestfulCaller\Executors;
 
 use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Promise\PromiseInterface;

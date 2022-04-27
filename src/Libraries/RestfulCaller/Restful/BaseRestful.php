@@ -4,7 +4,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\ResponseInterface;
 use SamagTech\Crud\Libraries\RestfulCaller\Auth\BaseRestAuth;
-use SamagTech\Crud\Libraries\RestfulCaller\Auth\RestAuthInterface;
 
 /**
  * Definizione della gestione della chiamante Restful
