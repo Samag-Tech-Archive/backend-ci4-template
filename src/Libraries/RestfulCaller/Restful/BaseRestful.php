@@ -123,7 +123,7 @@ abstract class BaseRestful implements RestfulInterface {
      * @return string
      */
     protected function buildUrl(string $path) : string {
-        return str_ends_with($this->client->getBaseUrl(), '/') ? $this->client->getBaseUrl().$path : $this->client->getBaseUrl().'/'.$path;
+        return str_ends_with($this->client->getConfig()['base_uri']->getPath(), '/') ? $this->client->getConfig()['base_uri']->getPath().$path : $this->client->getConfig()['base_uri']->getPath().'/'.$path;
     }
 
     //---------------------------------------------------------------------------------------------------

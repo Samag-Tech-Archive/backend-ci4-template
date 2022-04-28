@@ -306,7 +306,7 @@ abstract class BaseCaller implements CallerInterface {
     private function getResponseData(ResponseInterface|PromiseInterface $response) : array {
         return [
             $response->getStatusCode(),
-            json_decode($response->getBody())
+            json_decode($response->getBody(), true)
         ];
     }
 
