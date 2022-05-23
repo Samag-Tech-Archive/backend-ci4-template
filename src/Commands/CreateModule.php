@@ -98,7 +98,7 @@ class CreateModule extends BaseCommand {
 		}
 
 		// Imposto il path di default
-		$modulePath = APPPATH.'Modules/';
+		$modulePath = $mvc ? APPPATH : APPPATH.'Modules/' ;
 
 		// Creo i path principali
 		$configModulePath = $modulePath.$moduleName.'/Config';
