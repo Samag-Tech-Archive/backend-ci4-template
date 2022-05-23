@@ -97,6 +97,10 @@ class CreateModule extends BaseCommand {
 			return;
 		}
 
+		if ( $mvc ) {
+			$moduleName = '';
+		}
+
 		// Imposto il path di default
 		$modulePath = $mvc ? APPPATH : APPPATH.'Modules/' ;
 
@@ -114,7 +118,7 @@ class CreateModule extends BaseCommand {
 		mkdir($modelModulePath);
 
 		// Parso il template delle configurazione
-		if ( is_null($mvc) ) {
+		if ( ! $mvc)  {
 
 			$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate($useBulk));
 
@@ -266,16 +270,18 @@ class CreateModule extends BaseCommand {
 		}
 
 		$namespace = 'App\Modules\{moduleName}\Controllers';
+		$namespaceService = 'App\Modules\{moduleName}\Services\{moduleName}';
 
 		if ( $mvc ) {
 			$namespace = 'App\Controllers';
+			$namespaceService = 'App\Services\{moduleName}';
 		}
 
 		return <<<EOD
-		<?php namespace $namespace
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\\$controllerName;
-		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
+		use $namespaceService as Services{moduleName};
 
 		class {moduleName} extends $controllerName {
 
@@ -293,16 +299,18 @@ class CreateModule extends BaseCommand {
 	private function getControllerWithFileTemplate($mvc = false) {
 
 		$namespace = 'App\Modules\{moduleName}\Controllers';
+		$namespaceService = 'App\Modules\{moduleName}\Services\{moduleName}';
 
 		if ( $mvc ) {
 			$namespace = 'App\Controllers';
+			$namespaceService = 'App\Services\{moduleName}';
 		}
 
 		return <<<EOD
 		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\FileServiceController;
-		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
+		use $namespaceService as Services{moduleName};
 
 		class {moduleName} extends FileServiceController {
 
@@ -328,16 +336,18 @@ class CreateModule extends BaseCommand {
 		}
 
 		$namespace = 'App\Modules\{moduleName}\Services';
+		$namespaceModel = 'App\Modules\{moduleName}\Models\{modelName}Model';
 
 		if ( $mvc ) {
 			$namespace = 'App\Services';
+			$namespaceModel = 'App\Models\{modelName}Model';
 		}
 
 		return <<<EOD
 		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\\$serviceName;
-		use App\Modules\{moduleName}\Models\{modelName}Model;
+		use $namespaceModel;
 
 		class {moduleName} extends $serviceName {
 
@@ -369,17 +379,21 @@ class CreateModule extends BaseCommand {
 	private function getServiceWithFileTemplate($mvc = false) {
 
 		$namespace = 'App\Modules\{moduleName}\Services';
+		$namespaceModel = 'App\Modules\{moduleName}\Models\{modelName}Model';
+		$namespaceFileModel = 'App\Modules\{moduleName}\Models\{fileModelName}Model';
 
 		if ( $mvc ) {
 			$namespace = 'App\Services';
+			$namespaceModel = 'App\Models\{modelName}Model';
+			$namespaceFileModel = 'App\Models\{fileModelName}Model';
 		}
 
 		return <<<EOD
 		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\CRUDFileService;
-		use App\Modules\{moduleName}\Models\{modelName}Model;
-		use App\Modules\{moduleName}\Models\{fileModelName}Model;
+		use $namespaceModel;
+		use $namespaceFileModel;
 
 		class {moduleName} extends CRUDFileService {
 
