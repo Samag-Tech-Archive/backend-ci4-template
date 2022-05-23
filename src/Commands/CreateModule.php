@@ -51,7 +51,8 @@ class CreateModule extends BaseCommand {
 	 */
 	protected $options = [
 		'--file' 		=> 'Modulo con gestione di file',
-		'--bulk'		=> 'Modulo con le funzionalità bulk'
+		'--bulk'		=> 'Modulo con le funzionalità bulk',
+		'--mvc'			=> 'Utilizza i namespace dell\'mvc'
 	];
 
 	/**
@@ -68,6 +69,8 @@ class CreateModule extends BaseCommand {
 
 		// Implementazione gestione di
 		$file = CLI::getOption('file') ?? null;
+
+		$mvc = CLI::getOption('mvc');
 
 		if ( $file && ! is_string($file) ) {
 			$file = CLI::prompt('Inserisci il nome del modello del file');
@@ -111,12 +114,15 @@ class CreateModule extends BaseCommand {
 		mkdir($modelModulePath);
 
 		// Parso il template delle configurazione
-		$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate($useBulk));
+		if ( is_null($mvc) ) {
 
-		write_file($configModulePath.'/Routes.php', $template);
+			$template = str_replace(['{route}','{moduleName}'], [ lcfirst($moduleName), $moduleName] , $useFile ? $this->getConfigWithFileTemplate() : $this->getConfigTemplate($useBulk));
+
+			write_file($configModulePath.'/Routes.php', $template);
+		}
 
 		// Parso il template per il controller
-		$template = str_replace('{moduleName}', $moduleName, $useFile ? $this->getControllerWithFileTemplate() : $this->getControllerTemplate($useBulk));
+		$template = str_replace('{moduleName}', $moduleName, $useFile ? $this->getControllerWithFileTemplate($mvc) : $this->getControllerTemplate($useBulk, $mvc));
 
 		write_file($controllerModulePath.'/'.$moduleName.'.php', $template);
 
@@ -126,10 +132,10 @@ class CreateModule extends BaseCommand {
 
 		// Parso il template per il servizio
 		if ( $useFile ) {
-			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate());
+			$template = str_replace(['{moduleName}', '{modelName}', '{fileModelName}'], [$moduleName, $modelName, $file], $this->getServiceWithFileTemplate($mvc));
 		}
 		else {
-			$template = str_replace(['{moduleName}', '{modelName}', '{table}'], [$moduleName, $modelName, $table], $this->getServiceTemplate($useBulk));
+			$template = str_replace(['{moduleName}', '{modelName}', '{table}'], [$moduleName, $modelName, $table], $this->getServiceTemplate($useBulk, $mvc));
 		}
 
 		write_file($serviceModulePath.'/'.$moduleName.'.php', $template);
@@ -144,7 +150,7 @@ class CreateModule extends BaseCommand {
 		}
 
 		// Parso il template per il modello
-		$template = str_replace(['{moduleName}', '{modelName}', '{table}', '{alias}'], [$moduleName,$modelName,$table,$alias], $this->getModelTemplate());
+		$template = str_replace(['{moduleName}', '{modelName}', '{table}', '{alias}'], [$moduleName,$modelName,$table,$alias], $this->getModelTemplate($mvc));
 
 		write_file($modelModulePath.'/'.$modelName.'Model.php', $template);
 
@@ -161,7 +167,7 @@ class CreateModule extends BaseCommand {
 			}
 
 			// Parso il template per il modello
-			$template = str_replace(['{moduleName}', '{fileModelName}', '{table}', '{alias}'], [$moduleName,$file,$table,$alias], $this->getModelWithFileTemplate());
+			$template = str_replace(['{moduleName}', '{fileModelName}', '{table}', '{alias}'], [$moduleName,$file,$table,$alias], $this->getModelWithFileTemplate($mvc));
 
 			write_file($modelModulePath.'/'.$file.'Model.php', $template);
 		}
@@ -251,7 +257,7 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template del controller
 	 *
 	 */
-	private function getControllerTemplate($useBulk = false) {
+	private function getControllerTemplate($useBulk = false, $mvc = false) {
 
 		$controllerName = 'ServiceController';
 
@@ -259,9 +265,14 @@ class CreateModule extends BaseCommand {
 			$controllerName = 'BulkServiceController';
 		}
 
+		$namespace = 'App\Modules\{moduleName}\Controllers';
+
+		if ( $mvc ) {
+			$namespace = 'App\Controllers';
+		}
 
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Controllers;
+		<?php namespace $namespace
 
 		use SamagTech\Crud\Core\\$controllerName;
 		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
@@ -279,10 +290,16 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template del controller
 	 *
 	 */
-	private function getControllerWithFileTemplate() {
+	private function getControllerWithFileTemplate($mvc = false) {
+
+		$namespace = 'App\Modules\{moduleName}\Controllers';
+
+		if ( $mvc ) {
+			$namespace = 'App\Controllers';
+		}
 
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Controllers;
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\FileServiceController;
 		use App\Modules\{moduleName}\Services\{moduleName} as Services{moduleName};
@@ -300,7 +317,7 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template per il servizio
 	 *
 	 */
-	private function getServiceTemplate($useBulk = false) {
+	private function getServiceTemplate($useBulk = false, $mvc = false) {
 
 		$serviceName = 'CRUDService';
 		$keyForBulk = '';
@@ -310,8 +327,14 @@ class CreateModule extends BaseCommand {
 			$keyForBulk = 'protected ?string $keyBulk = \'{table}\';';
 		}
 
+		$namespace = 'App\Modules\{moduleName}\Services';
+
+		if ( $mvc ) {
+			$namespace = 'App\Services';
+		}
+
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Services;
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\\$serviceName;
 		use App\Modules\{moduleName}\Models\{modelName}Model;
@@ -343,10 +366,16 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template per il servizio
 	 *
 	 */
-	private function getServiceWithFileTemplate() {
+	private function getServiceWithFileTemplate($mvc = false) {
+
+		$namespace = 'App\Modules\{moduleName}\Services';
+
+		if ( $mvc ) {
+			$namespace = 'App\Services';
+		}
 
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Services;
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\CRUDFileService;
 		use App\Modules\{moduleName}\Models\{modelName}Model;
@@ -392,10 +421,16 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template per il modello
 	 *
 	 */
-	private function getModelTemplate() {
+	private function getModelTemplate($mvc = false) {
+
+		$namespace = 'App\Modules\{moduleName}\Models';
+
+		if ( $mvc ) {
+			$namespace = 'App\Models';
+		}
 
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Models;
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\CRUDModel;
 
@@ -414,10 +449,16 @@ class CreateModule extends BaseCommand {
 	 * Restituisce il template per il modello con l'implemenazione dei file
 	 *
 	 */
-	private function getModelWithFileTemplate() {
+	private function getModelWithFileTemplate($mvc = false) {
+
+		$namespace = 'App\Modules\{moduleName}\Models';
+
+		if ( $mvc ) {
+			$namespace = 'App\Models';
+		}
 
 		return <<<EOD
-		<?php namespace App\Modules\{moduleName}\Models;
+		<?php namespace $namespace;
 
 		use SamagTech\Crud\Core\CRUDModel;
 		use SamagTech\Crud\Core\FileModelInterface;
