@@ -97,25 +97,24 @@ class CreateModule extends BaseCommand {
 			return;
 		}
 
-		if ( $mvc ) {
-			$moduleName = '';
-		}
-
 		// Imposto il path di default
 		$modulePath = $mvc ? APPPATH : APPPATH.'Modules/' ;
 
 		// Creo i path principali
-		$configModulePath = $modulePath.$moduleName.'/Config';
-		$controllerModulePath = $modulePath.$moduleName.'/Controllers';
-		$serviceModulePath = $modulePath.$moduleName.'/Services';
-		$modelModulePath = $modulePath.$moduleName.'/Models';
+		$configModulePath = $modulePath.($mvc ? '': $moduleName).'/Config';
+		$controllerModulePath = $modulePath.($mvc ? '': $moduleName).'/Controllers';
+		$serviceModulePath = $modulePath.($mvc ? '': $moduleName).'/Services';
+		$modelModulePath = $modulePath.($mvc ? '': $moduleName).'/Models';
 
-		// Creo le cartelle
-		mkdir($modulePath.$moduleName);
-		mkdir($configModulePath);
-		mkdir($controllerModulePath);
-		mkdir($serviceModulePath);
-		mkdir($modelModulePath);
+		if ( ! $mvc ) {
+
+			// Creo le cartelle
+			mkdir($modulePath.$moduleName);
+			mkdir($configModulePath);
+			mkdir($controllerModulePath);
+			mkdir($serviceModulePath);
+			mkdir($modelModulePath);
+		}
 
 		// Parso il template delle configurazione
 		if ( ! $mvc)  {
