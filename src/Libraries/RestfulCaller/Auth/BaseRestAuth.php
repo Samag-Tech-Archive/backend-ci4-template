@@ -14,11 +14,11 @@ abstract class BaseRestAuth implements RestAuthInterface {
     /**
      * Token per l'autenticazione
      *
-     * @var string|null
+     * @var string
      *
-     * @access private
+     * @access protected
      */
-    private ?string $token = null;
+    protected string $token;
 
     //---------------------------------------------------------------------------------------------------
 

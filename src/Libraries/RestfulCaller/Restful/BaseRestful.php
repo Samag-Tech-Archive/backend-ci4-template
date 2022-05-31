@@ -101,7 +101,7 @@ abstract class BaseRestful implements RestfulInterface {
     /**
      * Esegue la richiesta REST
      *
-     * @access protected
+     * @access public
      *
      * @abstract
      *
@@ -111,7 +111,7 @@ abstract class BaseRestful implements RestfulInterface {
      *
      * @return ResponseInterface|PromiseInterface di Guzzle;
      */
-    abstract protected function request (string $method, string $path = '', ?array $data = null) : ResponseInterface | PromiseInterface;
+    abstract public function request (string $method, string $path = '', ?array $data = null) : ResponseInterface | PromiseInterface;
 
     //---------------------------------------------------------------------------------------------------
 

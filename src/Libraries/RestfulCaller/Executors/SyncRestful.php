@@ -31,7 +31,7 @@ class SyncRestful extends BaseRestful {
      * {@inheritDoc}
      *
      */
-    protected function request (string $method, string $path = '', ?array $data = null) : ResponseInterface | PromiseInterface {
+    public function request (string $method, string $path = '', ?array $data = null) : ResponseInterface | PromiseInterface {
 
         $method = strtoupper($method);
 
