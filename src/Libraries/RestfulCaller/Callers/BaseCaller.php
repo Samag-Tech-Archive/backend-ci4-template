@@ -162,6 +162,19 @@ abstract class BaseCaller implements CallerInterface {
     //---------------------------------------------------------------------------------------------------
 
     /**
+     * Ritorna l'istanza dell'esecutore delle richieste
+     *
+     * @access public
+     *
+     * @return RestfulInterface
+     */
+    public function getExecutorRequest() : RestfulInterface {
+        return $this->executorRequest;
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
+    /**
      * Restituisce l'istanza dell'autentifcazione
      *
      * @access public
