@@ -15,6 +15,6 @@ class JWTRestAuth extends BaseRestAuth {
      * Con il JWT viene definito il Bearer Token
      */
     public function getHeader(?string $token = null): array {
-        return ['headers' => ['Authorization' => 'bearer '. $token ?? $this->token]];
+        return ['headers' => ['Authorization' => 'bearer '. ($token ?? $this->token)]];
     }
 }
