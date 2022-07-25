@@ -329,7 +329,7 @@ class CRUDModel extends Model {
         // Join per la query
         if ( ! is_null($options['join'])) {
             foreach ( $options['join'] as $join ) {
-                $this->join($join[0], $join[1], ! isset($join[3]) ? 'left' : $join[3]);
+                $this->join($join[0], $join[1], ! isset($join[2]) ? 'left' : $join[2]);
             }
         }
 
