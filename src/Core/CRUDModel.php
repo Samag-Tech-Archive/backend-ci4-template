@@ -311,10 +311,22 @@ class CRUDModel extends Model {
         // Costruisco la query con le opzioni
         if ( ! empty($options['select'])) {
 
-            // Per ogni campo della select se non esiste un alias, viene inserito quello della tabella
-            array_walk($options['select'], fn(&$elem) => $elem = strpos($elem, '.') === false ? $identifyTable.'.'.$elem : $elem);
+            $select_columns = [];
 
-            $this->select('SQL_CALC_FOUND_ROWS ' . implode(',', $options['select']), FALSE);
+            foreach ($options['select'] as $key => $select) {
+
+                if ($key == 'func' || strpos($select, '.') !== false ) {
+                    $select_columns[] = $select;
+                }
+                else  if ( strpos($select, '.') === false) {
+                    $select_columns[] = $identifyTable.'.'.$select;
+                }
+
+            }
+
+            // Per ogni campo della select se non esiste un alias, viene inserito quello della tabella
+
+            $this->select('SQL_CALC_FOUND_ROWS ' . implode(',', $select_columns), FALSE);
         }
         else {
             // Select per calcolare anche il numero di righe totali
