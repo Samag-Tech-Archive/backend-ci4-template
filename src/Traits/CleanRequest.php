@@ -145,14 +145,42 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * Modifica della configurazione
+     * Modifica della configurazione,
+     *
+     * È possibile passare più elementi come fields passando un'array
+     *
+     * E.g:
+     *  [
+     *      "required" => [
+     *          "campo"
+     *      ],
+     *      "optional" => [
+     *          "campo"
+     *      ]
+     * ]
      */
-    protected function changeSetup(string $field, array $params): self
+    protected function changeSetup(string|array $field, ?array $params): void
     {
-        in_array($field, $this->configKeys) ?: throw new GenericException("Il campo da modificare non esiste", 500);
-        $this->sanitizeConfig[$field] = $params;
+        if (is_array($field)) {
+            foreach ($field as $configKey => $configParams) {
+                !$this->isValidSetup($configKey) ?: $this->sanitizeConfig[$configKey] = $configParams;
+            }
+        } else {
+            !$this->isValidSetup($field) ?: $this->sanitizeConfig[$field] = $params;
+        }
+    }
 
-        return $this;
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Verifica validità del campo su cui eseguire il sanitize
+     */
+    protected function isValidSetup($field): GenericException|bool
+    {
+        if (!in_array($field, $this->configKeys)) {
+            throw new GenericException("Il campo $field non è supportato", 500);
+        }
+        return true;
     }
 
     //----------------------------------------------------------------------------------------------------
