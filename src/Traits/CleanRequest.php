@@ -41,7 +41,7 @@ trait Sanitizer
     /**
      * Chiavi per l'array di configurazione
      */
-    private array $configKeys = [
+    private array $sanitizeConfigKeys = [
         "required",
         "null_field",
         "optional",
@@ -157,16 +157,18 @@ trait Sanitizer
      *      "optional" => [
      *          "campo"
      *      ]
-     * ]
+     * ];
+     *
+     * @return void
      */
-    protected function changeSetup(string|array $field, ?array $params): void
+    protected function changeSetup(string|array $field, ?array $params = null): void
     {
-        if (is_array($field)) {
-            foreach ($field as $configKey => $configParams) {
-                !$this->isValidSetup($configKey) ?: $this->sanitizeConfig[$configKey] = $configParams;
-            }
-        } else {
-            !$this->isValidSetup($field) ?: $this->sanitizeConfig[$field] = $params;
+        if (is_string($field)) {
+            $field = [$field => $params];
+        }
+        foreach ($field as $configKey => $configParams) {
+            $this->isValidSetup($configKey);
+            $this->sanitizeConfig[$configKey] = $configParams;
         }
     }
 
@@ -174,10 +176,13 @@ trait Sanitizer
 
     /**
      * Verifica validità del campo su cui eseguire il sanitize
+     *
+     * @return bool
+     * @throws GenericException
      */
-    protected function isValidSetup($field): GenericException|bool
+    protected function isValidSetup(string $field): bool
     {
-        if (!in_array($field, $this->configKeys)) {
+        if (!in_array($field, $this->sanitizeConfigKeys)) {
             throw new GenericException("Il campo $field non è supportato", 500);
         }
         return true;
@@ -186,8 +191,6 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * check
-     *
      * Funzione che effettua i vari check sui dati
      * prima dell'inserimento nel database
      *
@@ -213,10 +216,12 @@ trait Sanitizer
 
     /**
      * Check array di configurazione
+     *
+     * @return void
      */
     private function initSetup(): void
     {
-        foreach ($this->configKeys as $key) {
+        foreach ($this->sanitizeConfigKeys as $key) {
             isset($this->sanitizeConfig[$key]) ?: $this->sanitizeConfig[$key] = [];
         }
     }
@@ -224,14 +229,12 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * removeNotRequired
-     *
      * Funzione che elimina tutti gli elementi non utili alla registrazione del prodotto
      *
      * @param  array $data
-     * @return array
+     * @return void
      */
-    private function removeNotRequired(array &$data)
+    private function removeNotRequired(array &$data): void
     {
         foreach ($data as $key => $field) {
             if ($this->checkOptional($key)) {
@@ -245,8 +248,6 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * checkOptional
-     *
      * Valida che il campo passato non si trovi nell'array dei campi opzionali
      *
      * @param  mixed $field
@@ -263,14 +264,13 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * checkRequired
-     *
-     * Check sui campi richiesti per la registrazione del prodotto
+     * Check sui campi required
      *
      * @param  array $data
-     * @return array
+     * @return void
+     * @throws GenericException
      */
-    private function checkRequired(array &$data)
+    private function checkRequired(array &$data): void
     {
         foreach ($this->sanitizeConfig['required'] as $key => $field) {
             if (!in_array($field, array_keys($data))) {
@@ -289,14 +289,12 @@ trait Sanitizer
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * setToNull
-     *
-     * Funzione che setta a null i dati nell'array setToNull
+     * Funzione che setta a null i dati nell'array null_field
      *
      * @param  array $data
-     * @return array
+     * @return void
      */
-    private function setToNull(&$data)
+    private function setToNull(&$data): void
     {
         if (empty($this->sanitizeConfig['null_field'])) {
             return;
