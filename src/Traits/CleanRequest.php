@@ -37,12 +37,12 @@ trait Sanitizer
      */
     private function check(array $data): array
     {
-        if (isset($this->config['required'])) {
+        if (isset($this->sanitizeConfig['required'])) {
             $this->removeNotRequired($data);
             $this->checkRequired($data);
         }
 
-        if (isset($this->config['null_field'])) {
+        if (isset($this->sanitizeConfig['null_field'])) {
             $this->setToNull($data);
         }
 
@@ -63,7 +63,7 @@ trait Sanitizer
     {
         foreach ($data as $key => $field) {
             if ($this->checkOptional($key)) {
-                if (!in_array($key, $this->config['required'])) {
+                if (!in_array($key, $this->sanitizeConfig['required'])) {
                     unset($data[$key]);
                 }
             }
@@ -82,8 +82,8 @@ trait Sanitizer
      */
     private function checkOptional($field)
     {
-        if (isset($this->config['optional'])) {
-            return !in_array($field, $this->config['optional']);
+        if (isset($this->sanitizeConfig['optional'])) {
+            return !in_array($field, $this->sanitizeConfig['optional']);
         }
         return true;
     }
@@ -100,16 +100,16 @@ trait Sanitizer
      */
     private function checkRequired(array &$data)
     {
-        foreach ($this->config['required'] as $key => $field) {
+        foreach ($this->sanitizeConfig['required'] as $key => $field) {
             if (!in_array($field, array_keys($data))) {
-                if (in_array($field, $this->config['optional'])) {
+                if (in_array($field, $this->sanitizeConfig['optional'])) {
                     return;
                 }
-                throw new GenericException($this->config['messages'][$field] ?? "Sembra che il campo $field non sia presente, controlla i dati inseriti e riprova", 400);
+                throw new GenericException($this->sanitizeConfig['messages'][$field] ?? "Sembra che il campo $field non sia presente, controlla i dati inseriti e riprova", 400);
             }
 
             if (is_null($data[$field]) || empty($data[$field])) {
-                throw new GenericException($this->config['messages'][$field] ?? "Sembra che il campo $field sia vuoto, controlla i dati inseriti e riprova", 400);
+                throw new GenericException($this->sanitizeConfig['messages'][$field] ?? "Sembra che il campo $field sia vuoto, controlla i dati inseriti e riprova", 400);
             }
         }
     }
@@ -126,10 +126,10 @@ trait Sanitizer
      */
     private function setToNull(&$data)
     {
-        if (empty($this->config['null_field'])) {
+        if (empty($this->sanitizeConfig['null_field'])) {
             return;
         }
-        foreach ($this->config['null_field'] as $key => $field) {
+        foreach ($this->sanitizeConfig['null_field'] as $key => $field) {
             $data[$field] = null;
         }
     }
