@@ -14,6 +14,40 @@ use SamagTech\Crud\Exceptions\ResourceNotFoundException;
  */
 trait Sanitizer
 {
+
+    /**
+     * Array contenente la configurazione da utilizzare,
+     *
+     * E.g:
+     *  "required" => [     // per rendere i campi obbligatori all'inserimento
+     *      "campo1",
+     *      "campo2"
+     *  ],
+     *  "null_field" => [     // per settare i campi a NULL all'inserimento
+     *      "campo1",
+     *      "campo2"
+     *  ],
+     *  "optional" => [     // per un campo non obbligatorio all'inserimento
+     *      "campo1",
+     *      "campo2"
+     *  ],
+     *  "messages" => [     // per settare i messaggi di errore
+     *      "campo1" => "Errore campo1",
+     *      "campo2" => "Errore campo2"
+     *  ]
+     */
+    public array $sanitizeConfig = [
+        "required" => [],
+        "null_field"=>[],
+        "optional" => [],
+        "messages" => [],
+    ];
+
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Setto i valori dell'array di configurazione
+     */
     private function setup(array $setup): self
     {
         $this->sanitizeConfig['required']   = $setup['required'] ?? [];
