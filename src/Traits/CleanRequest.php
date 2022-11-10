@@ -36,7 +36,7 @@ trait Sanitizer
      *      "campo2" => "Errore campo2"
      *  ]
      */
-    public array $sanitizeConfig = [
+    protected array $sanitizeConfig = [
         "required" => [],
         "null_field"=>[],
         "optional" => [],
@@ -48,7 +48,7 @@ trait Sanitizer
     /**
      * Setto i valori dell'array di configurazione
      */
-    private function setup(array $setup): self
+    protected function setup(array $setup): self
     {
         $this->sanitizeConfig['required']   = $setup['required'] ?? [];
         $this->sanitizeConfig['null_field'] = $setup['null_field'] ?? [];
