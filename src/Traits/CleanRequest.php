@@ -236,7 +236,7 @@ trait Sanitizer
      */
     private function removeNotRequired(array &$data): void
     {
-        foreach ($data as $key => $field) {
+        foreach ($data as $key) {
             if ($this->checkOptional($key)) {
                 if (!in_array($key, $this->sanitizeConfig['required'])) {
                     unset($data[$key]);
@@ -272,7 +272,7 @@ trait Sanitizer
      */
     private function checkRequired(array &$data): void
     {
-        foreach ($this->sanitizeConfig['required'] as $key => $field) {
+        foreach ($this->sanitizeConfig['required'] as $field) {
             if (!in_array($field, array_keys($data))) {
                 if (in_array($field, $this->sanitizeConfig['optional'])) {
                     return;
@@ -299,7 +299,7 @@ trait Sanitizer
         if (empty($this->sanitizeConfig['null_field'])) {
             return;
         }
-        foreach ($this->sanitizeConfig['null_field'] as $key => $field) {
+        foreach ($this->sanitizeConfig['null_field'] as $field) {
             $data[$field] = null;
         }
     }
