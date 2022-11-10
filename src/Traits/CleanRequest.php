@@ -36,31 +36,121 @@ trait Sanitizer
      *      "campo2" => "Errore campo2"
      *  ]
      */
-    protected array $sanitizeSetup = [];
-
-    //----------------------------------------------------------------------------------------------------
+    protected array $sanitizeConfig = [];
 
     /**
-     * Array contenente la configurazione finale da utilizzare
+     * Chiavi per l'array di configurazione
      */
-    private array $sanitizeConfig = [
-        "required" => [],
-        "null_field"=>[],
-        "optional" => [],
-        "messages" => [],
+    private array $configKeys = [
+        "required",
+        "null_field",
+        "optional",
+        "messages"
     ];
 
     //----------------------------------------------------------------------------------------------------
 
     /**
-     * Setto i valori dell'array di configurazione
+     * {@inheritDoc}
+     *
      */
-    protected function setup(array $setup): self
+    public function create(IncomingRequest $request): array
     {
-        $this->sanitizeConfig['required']   = $setup['required'] ?? [];
-        $this->sanitizeConfig['null_field'] = $setup['null_field'] ?? [];
-        $this->sanitizeConfig['optional']   = $setup['optional'] ?? [];
-        $this->sanitizeConfig['messages']   = $setup['messages'] ?? [];
+        $data = $request->getJSON(TRUE);
+
+        $this->checkValidation($data, 'insert');
+
+        $data = $this->preInsertCallback($data);
+
+        // eseguo il sanitize dei dati pre inserimento nel database
+        $data = $this->check($data);
+
+        $extraInsert = $this->getExtraData($data);
+
+        $this->db->transStart();
+
+        if ($this->model->useCreatedBy) {
+            $data = array_merge($data, [
+                'created_by' => $this->currentUser->id,
+            ]);
+        }
+
+        $id = $this->model->insert($data);
+
+        $this->logger->create('create', $id, $data);
+
+        $this->insertCallback($extraInsert);
+
+        $this->postInsertCallback($id, $data, $extraInsert);
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === FALSE) {
+            throw new CreateException();
+        }
+
+        return $this->model->find($id);
+    }
+
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     */
+    public function update(IncomingRequest $request, int $id): bool
+    {
+        if (is_null($oldData = $this->model->find($id))) {
+            throw new ResourceNotFoundException();
+        }
+
+        $data = $request->getJSON(TRUE);
+
+        $this->checkValidation($data, 'update');
+
+        $data = $this->preUpdateCallback($id, $data);
+
+        // eseguo il sanitize dei dati pre inserimento nel database
+        $data = $this->check($data);
+
+        $extraUpdate = $this->getExtraData($data);
+
+        $this->db->transStart();
+
+        if ($this->model->useUpdatedBy) {
+            $data = array_merge($data, [
+                'updated_by' => $this->currentUser->id,
+            ]);
+        }
+
+        $data['updated_date'] = Time::now();
+
+        $isUpdate = $this->model->update($id, $data);
+
+        $this->logger->create('update', $id, $oldData, $data);
+
+        $this->updateCallback($id, $extraUpdate);
+
+        $this->postUpdateCallback($id, $data, $extraUpdate);
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === FALSE) {
+            throw new UpdateException();
+        }
+
+        return $isUpdate;
+    }
+
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Modifica della configurazione
+     */
+    protected function changeSetup(string $field, array $params): self
+    {
+        in_array($field, $this->configKeys) ?: throw new GenericException("Il campo da modificare non esiste", 500);
+        $this->sanitizeConfig[$field] = $params;
 
         return $this;
     }
@@ -78,6 +168,7 @@ trait Sanitizer
      */
     protected function check(array $data): array
     {
+        $this->initSetup();
         if (isset($this->sanitizeConfig['required'])) {
             $this->removeNotRequired($data);
             $this->checkRequired($data);
@@ -88,6 +179,18 @@ trait Sanitizer
         }
 
         return $data;
+    }
+
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Check array di configurazione
+     */
+    private function initSetup(): void
+    {
+        foreach ($this->configKeys as $key) {
+            isset($this->sanitizeConfig[$key]) ?: $this->sanitizeConfig[$key] = [];
+        }
     }
 
     //----------------------------------------------------------------------------------------------------
@@ -173,111 +276,5 @@ trait Sanitizer
         foreach ($this->sanitizeConfig['null_field'] as $key => $field) {
             $data[$field] = null;
         }
-    }
-
-    //----------------------------------------------------------------------------------------------------
-
-    /**
-     * {@inheritDoc}
-     *
-     */
-    public function create(IncomingRequest $request): array
-    {
-
-        // Recupero i dati dalla richiesta
-        $data = $request->getJSON(TRUE);
-
-        // Eseguo il check della validazione
-        $this->checkValidation($data, 'insert');
-
-        // Callback pre-inserimento
-        $data = $this->preInsertCallback($data);
-
-        // eseguo il sanitize dei dati pre inserimento nel database
-        $data = $this->setup($this->sanitizeSetup)->check($data);
-
-        // Callback per estrarre dati esterni alla riga
-        $extraInsert = $this->getExtraData($data);
-
-        // Inizializzo la transazione
-        $this->db->transStart();
-
-        // Se è impostato la colonna created_by aggiungo l'utente corrente
-        if ($this->model->useCreatedBy) {
-            $data = array_merge($data, [
-                'created_by' => $this->currentUser->id,
-            ]);
-        }
-
-        // Inserisco i dati
-        $id = $this->model->insert($data);
-
-        $this->logger->create('create', $id, $data);
-
-        // Se esistono dati extra allora eseguo la callback per gestirli
-        $this->insertCallback($extraInsert);
-
-        // Callback post-inserimento
-        $this->postInsertCallback($id, $data, $extraInsert);
-
-        // Termino la transazione
-        $this->db->transComplete();
-
-        // Se la transazione è fallita sollevo un eccezione
-        if ($this->db->transStatus() === FALSE) {
-            throw new CreateException();
-        }
-
-        return $this->model->find($id);
-    }
-
-    //----------------------------------------------------------------------------------------------------
-
-    /**
-     * {@inheritDoc}
-     *
-     */
-    public function update(IncomingRequest $request, int $id): bool
-    {
-        if (is_null($oldData = $this->model->find($id))) {
-            throw new ResourceNotFoundException();
-        }
-
-        $data = $request->getJSON(TRUE);
-
-        $this->checkValidation($data, 'update');
-
-        $data = $this->preUpdateCallback($id, $data);
-
-        // eseguo il sanitize dei dati pre inserimento nel database
-        $data = $this->setup($this->sanitizeSetup)->check($data);
-
-        $extraUpdate = $this->getExtraData($data);
-
-        $this->db->transStart();
-
-        if ($this->model->useUpdatedBy) {
-            $data = array_merge($data, [
-                'updated_by' => $this->currentUser->id,
-            ]);
-        }
-
-        $data['updated_date'] = Time::now();
-
-        $isUpdate = $this->model->update($id, $data);
-
-        $this->logger->create('update', $id, $oldData, $data);
-
-        $this->updateCallback($id, $extraUpdate);
-
-        $this->postUpdateCallback($id, $data, $extraUpdate);
-
-        $this->db->transComplete();
-
-        if ($this->db->transStatus() === FALSE) {
-            throw new UpdateException();
-        }
-
-        return $isUpdate;
     }
 }
