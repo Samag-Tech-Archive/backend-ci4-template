@@ -36,7 +36,14 @@ trait Sanitizer
      *      "campo2" => "Errore campo2"
      *  ]
      */
-    protected array $sanitizeConfig = [
+    protected array $sanitizeSetup = [];
+
+    //----------------------------------------------------------------------------------------------------
+
+    /**
+     * Array contenente la configurazione finale da utilizzare
+     */
+    private array $sanitizeConfig = [
         "required" => [],
         "null_field"=>[],
         "optional" => [],
@@ -69,7 +76,7 @@ trait Sanitizer
      * @param  array $data
      * @return array
      */
-    private function check(array $data): array
+    protected function check(array $data): array
     {
         if (isset($this->sanitizeConfig['required'])) {
             $this->removeNotRequired($data);
@@ -187,7 +194,7 @@ trait Sanitizer
         $data = $this->preInsertCallback($data);
 
         // eseguo il sanitize dei dati pre inserimento nel database
-        $data = $this->setup($this->sanitizeConfig)->check($data);
+        $data = $this->setup($this->sanitizeSetup)->check($data);
 
         // Callback per estrarre dati esterni alla riga
         $extraInsert = $this->getExtraData($data);
@@ -243,7 +250,7 @@ trait Sanitizer
         $data = $this->preUpdateCallback($id, $data);
 
         // eseguo il sanitize dei dati pre inserimento nel database
-        $data = $this->setup($this->sanitizeConfig)->check($data);
+        $data = $this->setup($this->sanitizeSetup)->check($data);
 
         $extraUpdate = $this->getExtraData($data);
 
