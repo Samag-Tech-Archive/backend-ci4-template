@@ -1,4 +1,6 @@
-<?php namespace SamagTech\Log\Libraries;
+<?php
+
+namespace SamagTech\Log\Libraries;
 
 use SamagTech\Crud\Config\Application;
 use SamagTech\Crud\Core\CRUDService;
@@ -14,7 +16,8 @@ use SamagTech\Log\Models\LogModel;
  * @author  Alessandro Marotta <alessandro.marotta@samag.tech>
  *
  */
-class Log  {
+class Log
+{
 
     /**
      * Modello per il log
@@ -22,7 +25,7 @@ class Log  {
      * @var LogModel
      * @access private
      */
-    private LogModel $model;
+    protected LogModel $model;
 
     /**
      * Tabella da loggare
@@ -73,7 +76,8 @@ class Log  {
      * @param int    $userID    Identificativo dell'utente che esegue l'azione
      *
      */
-    public function __construct(string $table, CRUDService $service, CurrentUser $user = null) {
+    public function __construct(string $table, CRUDService $service, CurrentUser $user = null)
+    {
 
         // Istanzio il modello
         $this->model = new LogModel();
@@ -96,7 +100,10 @@ class Log  {
      * @param string $table
      * @return void
      */
-    public function setTable(string $table) : void { $this->table = $table; }
+    public function setTable(string $table): void
+    {
+        $this->table = $table;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -105,7 +112,10 @@ class Log  {
      *
      * @return string
      */
-    public function getTable() : string { return $this->table; }
+    public function getTable(): string
+    {
+        return $this->table;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -115,7 +125,10 @@ class Log  {
      * @param CurrentUser $userID
      * @return void
      */
-    public function setUser(CurrentUser $user) : void { $this->user = $user; }
+    public function setUser(CurrentUser $user): void
+    {
+        $this->user = $user;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -124,7 +137,10 @@ class Log  {
      *
      * @return CurrentUser
      */
-    public function getUser() : CurrentUser { return $this->user; }
+    public function getUser(): CurrentUser
+    {
+        return $this->user;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -135,7 +151,10 @@ class Log  {
      * @param CRUDService $service
      * @return void
      */
-    public function setService(CRUDService $service) : void { $this->service = $service; }
+    public function setService(CRUDService $service): void
+    {
+        $this->service = $service;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -144,7 +163,10 @@ class Log  {
      *
      * @return CRUDService
      */
-    public function getService() : CRUDService { return $this->service; }
+    public function getService(): CRUDService
+    {
+        return $this->service;
+    }
 
     //---------------------------------------------------------------------------------------------
 
@@ -159,20 +181,21 @@ class Log  {
      *
      * @return void
      */
-    public function create(string $typeLog, int $rowID, array $old, array $new = null) : void {
+    public function create(string $typeLog, int $rowID, array $old, array $new = null): void
+    {
 
         // Controllo se il log deve essere generato
-        if ( ! $this->appConfig->activeLogger && ! $this->service->isActiveLogger() ) {
+        if (!$this->appConfig->activeLogger && !$this->service->isActiveLogger()) {
             return;
         }
 
         // Controllo che la tabella e lo userID siano settati
-        if ( is_null($this->table) ) {
+        if (is_null($this->table)) {
             throw new LogException('La tabella da loggare non è impostata.');
         }
 
         // Controllo che la tipologia sia gestita
-        if ( ! in_array($typeLog, $this->config->typeLogs, true) ) {
+        if (!in_array($typeLog, $this->config->typeLogs, true)) {
             throw new LogException('La tipologia di log non è gestita.');
         }
 
@@ -181,7 +204,7 @@ class Log  {
          * allora i nuovi dati devono essere impostati
          *
          */
-        if ( in_array($typeLog, $this->config->updatedType, true)  && ( is_null($new) || empty($new) ) ) {
+        if (in_array($typeLog, $this->config->updatedType, true)  && (is_null($new) || empty($new))) {
             throw new LogException('In fase di update devono essere settati i nuovi dati');
         }
 
@@ -197,7 +220,7 @@ class Log  {
         ];
 
         // Inserisco i dati
-        if ( ! $this->model->insert($toInsert) ) {
+        if (!$this->model->insert($toInsert)) {
             throw new LogException('Errore durante l\'inserimento del log');
         }
     }
