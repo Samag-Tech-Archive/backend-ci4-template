@@ -1,8 +1,12 @@
-<?php namespace SamagTech\Crud\Validation;
+<?php
+
+namespace SamagTech\Crud\Validation;
 
 use InvalidArgumentException;
+use CodeIgniter\Database\BaseConnection;
 
-class DatabaseValidation {
+class DatabaseValidation
+{
 
 	/**
 	 * Connessione al database
@@ -16,7 +20,8 @@ class DatabaseValidation {
 	 * Costruttore.
 	 *
 	 */
-	public function __construct() {
+	public function __construct()
+	{
 		$this->db = \Config\Database::connect();
 	}
 
@@ -26,8 +31,9 @@ class DatabaseValidation {
 	 * Controllo se esiste l'identificativo
 	 *
 	 */
-	public function db_exist($str, string $table) {
-		return ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
+	public function db_exist($str, string $table)
+	{
+		return !empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
 	}
 
 	//-------------------------------------------------------------------------------------------------------------
@@ -37,8 +43,9 @@ class DatabaseValidation {
 	 * Controllo dell'identificativo opzionale
 	 *
 	 */
-	public function db_exist_not_required($str, string $table) {
-		return is_null($str) || ! empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
+	public function db_exist_not_required($str, string $table)
+	{
+		return is_null($str) || !empty($this->db->table($table)->where('id', (int) $str)->get()->getResultArray());
 	}
 
 	//-------------------------------------------------------------------------------------------------------------
@@ -48,23 +55,24 @@ class DatabaseValidation {
 	 *
 	 * Ex: db_check_unique_key[TABELLA,CAMPO1,CAMPO2,....,CAMPON]
 	 */
-	public function db_check_unique_key($str, string $fields, $data) {
+	public function db_check_unique_key($str, string $fields, $data)
+	{
 
 		$fields = explode(',', $fields);
 
 		// Recupero la tabella
 		$table = array_shift($fields);
 
-		if ( is_null($table) || count($fields) < 2 ) {
+		if (is_null($table) || count($fields) < 2) {
 			throw new InvalidArgumentException('Il modello e/o i campi non sono ben impostati.');
 		}
 
 		$where = [];
 
 		// Controllo se i campi esistono, se esistono li inserisco nella clausola where
-		foreach ( $fields as $field ) {
+		foreach ($fields as $field) {
 
-			if ( ! isset($data[$field]) ) {
+			if (!isset($data[$field])) {
 				return false;
 			}
 
@@ -72,7 +80,6 @@ class DatabaseValidation {
 		}
 
 		return empty($this->db->table($table)->where($where)->get()->getResultArray());
-
 	}
 
 	//-------------------------------------------------------------------------------------------------------------
@@ -81,7 +88,8 @@ class DatabaseValidation {
 	 * Funzione is_unique di CI4 modificata per ignorare i dati cancellati
 	 *
 	 */
-	public function is_unique_with_deleted(string $str = null, string $field, array $data): bool {
+	public function is_unique_with_deleted(string $str = null, string $field, array $data): bool
+	{
 
 		// Recupero i dati
 		[$field, $ignoreField, $ignoreValue] = array_pad(explode(',', $field), 3, null);
@@ -89,12 +97,12 @@ class DatabaseValidation {
 		sscanf($field, '%[^.].%[^.]', $table, $field);
 
 		$row = $this->db->table($table)
-				  ->select('1')
-				  ->where($field, $str)
-				  ->where('deleted_date', null)
-				  ->limit(1);
+			->select('1')
+			->where($field, $str)
+			->where('deleted_date', null)
+			->limit(1);
 
-		if (! empty($ignoreField) && ! empty($ignoreValue) && ! preg_match('/^\{(\w+)\}$/', $ignoreValue)) {
+		if (!empty($ignoreField) && !empty($ignoreValue) && !preg_match('/^\{(\w+)\}$/', $ignoreValue)) {
 			$row = $row->where("{$ignoreField} !=", $ignoreValue);
 		}
 
@@ -103,4 +111,18 @@ class DatabaseValidation {
 
 	//-------------------------------------------------------------------------------------------------------------
 
+
+	/**
+	 * Set connessione al database
+	 *
+	 * @return  self
+	 */
+	public function setDb(BaseConnection $db): self
+	{
+		$this->db = $db;
+
+		return $this;
+	}
+
+	//-------------------------------------------------------------------------------------------------------------
 }
